@@ -8,11 +8,11 @@ name = "trane"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.57"
-chrono = "0.4"
-clap = { version = "3.1.18", features = ["derive"] }
+anyhow = "1.0.58"
+chrono = "0.4.19"
+clap = { version = "3.2.8", features = ["derive"] }
 rustyline = "9.1.2"
-termimad = "0.14"
+termimad = "0.20.2"
 trane = "0.1.2"
 
 # Commented out for use for local development.
