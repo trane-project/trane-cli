@@ -263,7 +263,7 @@ impl TraneCli {
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
-                app.whitelist(&unit_id)?;
+                app.whitelist(unit_id)?;
                 println!("Removed {} from the blacklist", unit_id);
                 Ok(())
             }
@@ -285,17 +285,17 @@ impl TraneCli {
             }
 
             Subcommands::Debug(DebugSubcommands::Uid { unit_id: id }) => {
-                let uid = app.get_unit_uid(&id)?;
+                let uid = app.get_unit_uid(id)?;
                 println!("The UID for the unit with ID {} is {}", id, uid);
                 Ok(())
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
-                app.show_unit_info(&unit_id)
+                app.show_unit_info(unit_id)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id: id }) => {
-                let unit_type = app.get_unit_type(&id)?;
+                let unit_type = app.get_unit_type(id)?;
                 println!("The type of the unit with ID {} is {:?}", id, unit_type);
                 Ok(())
             }
@@ -307,7 +307,7 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::Course { id }) => {
-                app.filter_course(&id)?;
+                app.filter_course(id)?;
                 println!(
                     "Set the unit filter to only show exercises from the course with ID {}",
                     id
@@ -316,7 +316,7 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::Lesson { id }) => {
-                app.filter_lesson(&id)?;
+                app.filter_lesson(id)?;
                 println!(
                     "Set the unit filter to only show exercises from the lesson with ID {}",
                     id
@@ -343,7 +343,7 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::SetSaved { id }) => {
-                app.set_filter(&id)?;
+                app.set_filter(id)?;
                 println!("Set the unit filter to the saved filter with ID {}", id);
                 Ok(())
             }
@@ -354,25 +354,25 @@ impl TraneCli {
             }
 
             Subcommands::Instructions(InstructionSubcommands::Course { course_id }) => {
-                app.show_course_instructions(&course_id)
+                app.show_course_instructions(course_id)
             }
 
             Subcommands::Instructions(InstructionSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_instructions(&lesson_id)
+                app.show_lesson_instructions(lesson_id)
             }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
-                app.show_course_material(&course_id)
+                app.show_course_material(course_id)
             }
 
             Subcommands::Material(MaterialSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_material(&lesson_id)
+                app.show_lesson_material(lesson_id)
             }
 
             Subcommands::Next => app.next(),
 
             Subcommands::Open { library_path } => {
-                app.open_library(&library_path)?;
+                app.open_library(library_path)?;
                 println!("Successfully opened course library at {}", library_path);
                 Ok(())
             }
