@@ -1,3 +1,4 @@
+//! A command-line interface for Trane.
 mod app;
 mod cli;
 mod display;
@@ -40,7 +41,7 @@ fn main() -> Result<()> {
         let readline = rl.readline("\x1b[1;31mtrane >>\x1b[0m ");
         match readline {
             Ok(line) => {
-                let split: Vec<&str> = line.split(" ").into_iter().collect();
+                let split: Vec<&str> = line.split(' ').into_iter().collect();
                 let mut args = if !split.is_empty() && split[0] == "trane" {
                     vec![]
                 } else {

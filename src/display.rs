@@ -1,3 +1,4 @@
+//! Module containing data structures to print assets to the terminal.
 use std::fs::read_to_string;
 
 use anyhow::Result;
@@ -13,6 +14,7 @@ pub fn print_markdown(path: &str) -> Result<()> {
 
 /// Trait to display an asset to the terminal.
 pub trait DisplayAsset {
+    /// Prints the asset to the terminal.
     fn display_asset(&self) -> Result<()>;
 }
 
@@ -50,7 +52,7 @@ impl DisplayExercise for ExerciseManifest {
         if self.description.is_some() {
             println!("Description: {}", self.description.as_ref().unwrap());
         }
-        println!("");
+        println!();
         self.exercise_asset.display_exercise()?;
         Ok(())
     }
@@ -77,7 +79,7 @@ impl DisplayAnswer for ExerciseManifest {
         println!("Lesson ID: {}", self.lesson_id);
         println!("Exercise ID: {}", self.id);
         println!("Answer:");
-        println!("");
+        println!();
         self.exercise_asset.display_answer()?;
         Ok(())
     }

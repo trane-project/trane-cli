@@ -1,3 +1,4 @@
+//! Module containing the state of the application.
 use anyhow::{anyhow, ensure, Result};
 use chrono::Utc;
 use trane::{
@@ -35,11 +36,10 @@ pub(crate) struct TraneApp {
 impl TraneApp {
     /// Returns the current exercise.
     fn current_exercise(&self) -> Result<(String, ExerciseManifest)> {
-        Ok(self
-            .batch
+        self.batch
             .get(self.batch_index)
             .cloned()
-            .ok_or(anyhow!("cannot get current exercise"))?)
+            .ok_or_else(|| anyhow!("cannot get current exercise"))
     }
 
     /// Returns the current exercise's course ID.
@@ -122,9 +122,9 @@ impl TraneApp {
 
     /// Returns the given course ID or the current exercise's course ID if the given ID is empty.
     fn course_id_or_current(&self, course_id: &str) -> Result<String> {
-        let current_course = self.current_exercise_course().unwrap_or("".to_string());
-        if course_id == "" {
-            if current_course == "" {
+        let current_course = self.current_exercise_course().unwrap_or_default();
+        if course_id.is_empty() {
+            if current_course.is_empty() {
                 Err(anyhow!("cannot get current exercise"))
             } else {
                 Ok(current_course)
@@ -136,9 +136,9 @@ impl TraneApp {
 
     /// Returns the given lesson ID or the current exercise's lesson ID if the given ID is empty.
     fn lesson_id_or_current(&self, lesson_id: &str) -> Result<String> {
-        let current_lesson = self.current_exercise_lesson().unwrap_or("".to_string());
-        if lesson_id == "" {
-            if current_lesson == "" {
+        let current_lesson = self.current_exercise_lesson().unwrap_or_default();
+        if lesson_id.is_empty() {
+            if current_lesson.is_empty() {
                 Err(anyhow!("cannot get current exercise"))
             } else {
                 Ok(current_lesson)
@@ -153,7 +153,7 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         self.get_unit_uid(course_id)
-            .or(Err(anyhow!("missing course with ID {}", course_id)))?;
+            .map_err(|_| anyhow!("missing course with ID {}", course_id))?;
         let unit_type = self.get_unit_type(course_id)?;
         if unit_type != UnitType::Course {
             return Err(anyhow!("unit with ID {} is not a course", course_id));
@@ -170,7 +170,7 @@ impl TraneApp {
     pub fn filter_lesson(&mut self, lesson_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         self.get_unit_uid(lesson_id)
-            .or(Err(anyhow!("missing lesson with ID {}", lesson_id)))?;
+            .map_err(|_| anyhow!("missing lesson with ID {}", lesson_id))?;
         let unit_type = self.get_unit_type(lesson_id)?;
         if unit_type != UnitType::Lesson {
             return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
@@ -191,53 +191,43 @@ impl TraneApp {
         lesson_metadata: &Option<Vec<KeyValue>>,
         course_metadata: &Option<Vec<KeyValue>>,
     ) -> Result<()> {
-        let lesson_filters: Option<Vec<KeyValueFilter>> = match lesson_metadata {
-            None => None,
-            Some(pairs) => Some(
+        let basic_lesson_filters: Option<Vec<KeyValueFilter>> =
+            lesson_metadata.as_ref().map(|pairs| {
                 pairs
-                    .into_iter()
+                    .iter()
                     .map(|pair| KeyValueFilter::BasicFilter {
                         key: pair.key.clone(),
                         value: pair.value.clone(),
                         filter_type: FilterType::Include,
                     })
-                    .collect(),
-            ),
-        };
-        let lesson_filter = match lesson_filters {
-            None => None,
-            Some(filters) => Some(KeyValueFilter::CombinedFilter {
-                op: filter_op.clone(),
-                filters: filters,
-            }),
-        };
+                    .collect()
+            });
+        let lesson_filter = basic_lesson_filters.map(|filters| KeyValueFilter::CombinedFilter {
+            op: filter_op.clone(),
+            filters,
+        });
 
-        let course_filters: Option<Vec<KeyValueFilter>> = match course_metadata {
-            None => None,
-            Some(pairs) => Some(
+        let basic_course_filters: Option<Vec<KeyValueFilter>> =
+            course_metadata.as_ref().map(|pairs| {
                 pairs
-                    .into_iter()
+                    .iter()
                     .map(|pair| KeyValueFilter::BasicFilter {
                         key: pair.key.clone(),
                         value: pair.value.clone(),
                         filter_type: FilterType::Include,
                     })
-                    .collect(),
-            ),
-        };
-        let course_filter = match course_filters {
-            None => None,
-            Some(filters) => Some(KeyValueFilter::CombinedFilter {
-                op: filter_op.clone(),
-                filters: filters,
-            }),
-        };
+                    .collect()
+            });
+        let course_filter = basic_course_filters.map(|filters| KeyValueFilter::CombinedFilter {
+            op: filter_op.clone(),
+            filters,
+        });
 
         self.filter = Some(UnitFilter::MetadataFilter {
             filter: MetadataFilter {
                 op: filter_op,
-                lesson_filter: lesson_filter,
-                course_filter: course_filter,
+                lesson_filter,
+                course_filter,
             },
         });
         self.reset_batch();
@@ -252,7 +242,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_uid(unit_id)
-            .ok_or(anyhow!("missing UID for unit with ID {}", unit_id))
+            .ok_or_else(|| anyhow!("missing UID for unit with ID {}", unit_id))
     }
 
     /// Returns the type of the unit with the given ID.
@@ -264,7 +254,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_unit_type(unit_uid)
-            .ok_or(anyhow!("missing type for unit with ID {}", unit_id))
+            .ok_or_else(|| anyhow!("missing type for unit with ID {}", unit_id))
     }
 
     /// Returns the ID of the unit with the given UID.
@@ -275,7 +265,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_id(unit_uid)
-            .ok_or(anyhow!("missing ID for unit with UID {}", unit_uid))
+            .ok_or_else(|| anyhow!("missing ID for unit with UID {}", unit_uid))
     }
 
     /// Prints the a list of all the saved unit filters.
@@ -354,8 +344,8 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_filter(filter_id)
-            .ok_or(anyhow!("no filter with ID {}", filter_id))?;
-        self.filter = Some(named_filter.filter.clone());
+            .ok_or_else(|| anyhow!("no filter with ID {}", filter_id))?;
+        self.filter = Some(named_filter.filter);
         Ok(())
     }
 
@@ -402,7 +392,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(&course_id)
-            .ok_or(anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
         match manifest.course_instructions {
             None => {
                 println!("Course has no instructions");
@@ -421,7 +411,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(&lesson_id)
-            .ok_or(anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
         match manifest.lesson_instructions {
             None => {
                 println!("Lesson has no instructions");
@@ -440,7 +430,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(&course_id)
-            .ok_or(anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
         match manifest.course_material {
             None => {
                 println!("Course has no material");
@@ -459,7 +449,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(&lesson_id)
-            .ok_or(anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
         match manifest.lesson_material {
             None => {
                 println!("Lesson has no material");
@@ -480,7 +470,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_exercise_manifest(unit_id)
-                    .ok_or(anyhow!("missing manifest for exercise {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for exercise {}", unit_id))?;
                 println!("Unit manifest:");
                 println!("{:#?}", manifest);
             }
@@ -490,7 +480,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_lesson_manifest(unit_id)
-                    .ok_or(anyhow!("missing manifest for lesson {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for lesson {}", unit_id))?;
                 println!("Unit manifest:");
                 println!("{:#?}", manifest);
             }
@@ -500,7 +490,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_course_manifest(unit_id)
-                    .ok_or(anyhow!("missing manifest for course {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for course {}", unit_id))?;
                 println!("Unit manifest:");
                 println!("{:#?}", manifest);
             }
