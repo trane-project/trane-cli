@@ -3,6 +3,14 @@
 This repository contains the code for the command-line interface to
 [Trane](https://github.com/trane-project/trane).
 
+## Installation instructions
+
+Github releases include a compiled binary. Download the one for your OS and architecture and put it
+somewhere where your shell can find it.
+
+There are releases for Linux, Windows, and Mac. Releases for ARM OS X are not available at the
+moment because cross-compilation is not working.
+
 ## Build instructions
 
 The only requirement is an installation of the stable Rust tool chain. `cargo build` should do the
