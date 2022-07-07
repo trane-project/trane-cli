@@ -95,13 +95,13 @@ pub(crate) enum FilterSubcommands {
     #[clap(about = "Set the unit filter to only show exercises from the given course")]
     Course {
         #[clap(help = "The ID of the course")]
-        id: String,
+        ids: Vec<String>,
     },
 
     #[clap(about = "Set the unit filter to only show exercises from the given lesson")]
     Lesson {
         #[clap(help = "The ID of the lesson")]
-        id: String,
+        ids: Vec<String>,
     },
 
     #[clap(about = "List the saved unit filters")]
@@ -306,20 +306,20 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::Course { id }) => {
-                app.filter_course(id)?;
+            Subcommands::Filter(FilterSubcommands::Course { ids }) => {
+                app.filter_course(&ids[..])?;
                 println!(
-                    "Set the unit filter to only show exercises from the course with ID {}",
-                    id
+                    "Set the unit filter to only show exercises from the course with IDs {:?}",
+                    ids
                 );
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::Lesson { id }) => {
-                app.filter_lesson(id)?;
+            Subcommands::Filter(FilterSubcommands::Lesson { ids }) => {
+                app.filter_lesson(ids)?;
                 println!(
-                    "Set the unit filter to only show exercises from the lesson with ID {}",
-                    id
+                    "Set the unit filter to only show exercises from the lesson with ID {:?}",
+                    ids
                 );
                 Ok(())
             }
