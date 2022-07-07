@@ -1,6 +1,6 @@
 [package]
 name = "trane-cli"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 
 [[bin]]
@@ -13,7 +13,7 @@ chrono = "0.4.19"
 clap = { version = "3.2.8", features = ["derive"] }
 rustyline = "9.1.2"
 termimad = "0.20.2"
-trane = "0.2.1"
+trane = "0.2.3"
 
 # Commented out for use in local development.
 # trane = { path = "../trane" }

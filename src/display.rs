@@ -36,7 +36,11 @@ impl DisplayExercise for ExerciseAsset {
     fn display_exercise(&self) -> Result<()> {
         match self {
             ExerciseAsset::FlashcardAsset { front_path, .. } => print_markdown(front_path),
-            ExerciseAsset::SoundSliceAsset { link } => {
+            ExerciseAsset::SoundSliceAsset { link, description } => {
+                if let Some(description) = description {
+                    println!("Exercise description:");
+                    print_inline(description);
+                }
                 println!("SoundSlice link: {}", link);
                 Ok(())
             }

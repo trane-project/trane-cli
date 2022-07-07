@@ -149,35 +149,40 @@ impl TraneApp {
     }
 
     /// Sets the filter to only show exercises from the given course.
-    pub fn filter_course(&mut self, course_id: &str) -> Result<()> {
+    pub fn filter_course(&mut self, course_ids: &[String]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        self.get_unit_uid(course_id)
-            .map_err(|_| anyhow!("missing course with ID {}", course_id))?;
-        let unit_type = self.get_unit_type(course_id)?;
-        if unit_type != UnitType::Course {
-            return Err(anyhow!("unit with ID {} is not a course", course_id));
+        for course_id in course_ids {
+            self.get_unit_uid(course_id)
+                .map_err(|_| anyhow!("missing course with ID {}", course_id))?;
+            let unit_type = self.get_unit_type(course_id)?;
+            if unit_type != UnitType::Course {
+                return Err(anyhow!("unit with ID {} is not a course", course_id));
+            }
         }
 
         self.filter = Some(UnitFilter::CourseFilter {
-            course_id: course_id.to_string(),
+            course_ids: course_ids.to_vec(),
         });
         self.reset_batch();
         Ok(())
     }
 
     /// Sets the filter to only show exercises from the given lesson.
-    pub fn filter_lesson(&mut self, lesson_id: &str) -> Result<()> {
+    pub fn filter_lesson(&mut self, lesson_ids: &[String]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.get_unit_uid(lesson_id)
-            .map_err(|_| anyhow!("missing lesson with ID {}", lesson_id))?;
-        let unit_type = self.get_unit_type(lesson_id)?;
-        if unit_type != UnitType::Lesson {
-            return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
+
+        for lesson_id in lesson_ids {
+            self.get_unit_uid(lesson_id)
+                .map_err(|_| anyhow!("missing lesson with ID {}", lesson_id))?;
+            let unit_type = self.get_unit_type(lesson_id)?;
+            if unit_type != UnitType::Lesson {
+                return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
+            }
         }
 
         self.filter = Some(UnitFilter::LessonFilter {
-            lesson_id: lesson_id.to_string(),
+            lesson_ids: lesson_ids.to_vec(),
         });
         self.reset_batch();
         Ok(())
