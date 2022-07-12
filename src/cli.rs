@@ -213,7 +213,7 @@ pub(crate) enum Subcommands {
     #[clap(subcommand)]
     Material(MaterialSubcommands),
 
-    #[clap(about = "Proceed to the next exercise")]
+    #[clap(about = "Submits the score for the current exercise and proceeds to the next")]
     Next,
 
     #[clap(about = "Open the course library at the given location")]

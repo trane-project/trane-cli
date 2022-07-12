@@ -31,6 +31,10 @@ pub(crate) struct TraneApp {
 
     /// The index of the current exercise in the batch.
     batch_index: usize,
+
+    /// The score given to the current exercise. The score can be changed anytime before the next
+    /// exercise is requested.
+    current_score: Option<MasteryScore>,
 }
 
 impl TraneApp {
@@ -58,10 +62,31 @@ impl TraneApp {
         Ok(manifest.lesson_id)
     }
 
+    /// Submits the score for the current exercise.
+    pub fn submit_current_score(&mut self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        if let Some(mastery_score) = &self.current_score {
+            let curr_exercise = self.current_exercise()?;
+            let timestamp = Utc::now().timestamp();
+            self.trane.as_ref().unwrap().record_exercise_score(
+                &curr_exercise.0,
+                mastery_score.clone(),
+                timestamp,
+            )?;
+        }
+        Ok(())
+    }
+
     /// Resets the batch of exercises.
     fn reset_batch(&mut self) {
+        // Submit the score for the current exercise but ignore the error because this function
+        // might be called before an instance of Trane is open.
+        let _ = self.submit_current_score();
+
         self.batch.clear();
         self.batch_index = 0;
+        self.current_score = None;
     }
 
     /// Adds the current exercise's course to the blacklist.
@@ -296,6 +321,10 @@ impl TraneApp {
     pub fn next(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        // Submit the current score before moving on to the next exercise.
+        self.submit_current_score()?;
+
+        self.current_score = None;
         self.batch_index += 1;
         if self.batch.is_empty() || self.batch_index >= self.batch.len() {
             self.batch = self
@@ -323,8 +352,6 @@ impl TraneApp {
     pub fn record_score(&mut self, score: u8) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let curr_exercise = self.current_exercise()?;
-        let timestamp = Utc::now().timestamp();
         let mastery_score = match score {
             1 => Ok(MasteryScore::One),
             2 => Ok(MasteryScore::Two),
@@ -333,11 +360,8 @@ impl TraneApp {
             5 => Ok(MasteryScore::Five),
             _ => Err(anyhow!("invalid score {}", score)),
         }?;
-        self.trane.as_ref().unwrap().record_exercise_score(
-            &curr_exercise.0,
-            mastery_score,
-            timestamp,
-        )
+        self.current_score = Some(mastery_score);
+        Ok(())
     }
 
     /// Sets the unit filter to the saved filter with the given ID.
