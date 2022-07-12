@@ -65,6 +65,10 @@ fn main() -> Result<()> {
                 continue;
             }
             Err(ReadlineError::Eof) => {
+                // Submit the current score before exiting. Ignore the error because it's not
+                // guaranteed an instance of Trane is open.
+                let _ = app.submit_current_score();
+
                 println!("EOF: Exiting");
                 break;
             }
