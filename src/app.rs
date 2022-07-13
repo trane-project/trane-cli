@@ -1,6 +1,6 @@
 //! Module containing the state of the application.
 use anyhow::{anyhow, ensure, Result};
-use chrono::Utc;
+use chrono::{Local, TimeZone, Utc};
 use trane::{
     blacklist::Blacklist,
     course_library::CourseLibrary,
@@ -10,6 +10,7 @@ use trane::{
     },
     filter_manager::FilterManager,
     graph::DebugUnitGraph,
+    practice_stats::PracticeStats,
     scheduler::ExerciseScheduler,
     Trane,
 };
@@ -170,6 +171,15 @@ impl TraneApp {
             }
         } else {
             Ok(lesson_id.to_string())
+        }
+    }
+
+    /// Returns the given exercise ID or the current exercise's ID if the given ID is empty.
+    fn exercise_id_or_current(&self, exercise_id: &str) -> Result<String> {
+        if exercise_id.is_empty() {
+            Ok(self.current_exercise()?.0)
+        } else {
+            Ok(exercise_id.to_string())
         }
     }
 
@@ -486,6 +496,31 @@ impl TraneApp {
             }
             Some(material) => material.display_asset(),
         }
+    }
+
+    /// Shows the most recent scores for the given exercise.
+    pub fn show_scores(&self, exercise_id: &str, num_scores: usize) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        let scores = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_scores(&exercise_id, num_scores)?;
+
+        println!("Scores for exercise \"{}\":", exercise_id);
+        println!("{:<20} Score", "Date");
+        println!();
+        for score in scores {
+            let dt = Local.timestamp(score.timestamp, 0);
+            println!(
+                "{} {:>6}",
+                dt.format("%Y-%m-%d %H:%M:%S"),
+                score.score as u8
+            );
+        }
+        Ok(())
     }
 
     /// Prints the manifest for the unit with the given UID.
