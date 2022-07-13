@@ -164,6 +164,25 @@ pub(crate) enum InstructionSubcommands {
     },
 }
 
+/// Contains subcommands used for displaying courses, lessons, and exercises IDs.
+#[derive(Debug, Subcommand)]
+pub(crate) enum ListSubcommands {
+    #[clap(about = "Show the IDs of all courses in the library")]
+    Courses,
+
+    #[clap(about = "Show the IDs of all lessons in the given course")]
+    Lessons {
+        #[clap(help = "The ID of the course")]
+        course_id: String,
+    },
+
+    #[clap(about = "Show the IDs of all exercises in the given lesson")]
+    Exercises {
+        #[clap(help = "The ID of the lesson")]
+        lesson_id: String,
+    },
+}
+
 /// Contains subcommands used for displaying course and lesson materials.
 #[derive(Debug, Subcommand)]
 pub(crate) enum MaterialSubcommands {
@@ -209,16 +228,9 @@ pub(crate) enum Subcommands {
     #[clap(subcommand)]
     Instructions(InstructionSubcommands),
 
-    #[clap(about = "List the most recent scores for the given exercise")]
-    ListScores {
-        #[clap(help = "The ID of the exercise")]
-        #[clap(default_value = "")]
-        exercise_id: String,
-
-        #[clap(help = "The number of scores to show")]
-        #[clap(default_value = "25")]
-        num_scores: usize,
-    },
+    #[clap(about = "Subcommands for listing course, lesson, and exercise IDs")]
+    #[clap(subcommand)]
+    List(ListSubcommands),
 
     #[clap(about = "Subcommands for showing course and lesson materials")]
     #[clap(subcommand)]
@@ -237,6 +249,17 @@ pub(crate) enum Subcommands {
     Score {
         #[clap(help = "The mastery score (1-5) for the current exercise")]
         score: u8,
+    },
+
+    #[clap(about = "Show the most recent scores for the given exercise")]
+    Scores {
+        #[clap(help = "The ID of the exercise")]
+        #[clap(default_value = "")]
+        exercise_id: String,
+
+        #[clap(help = "The number of scores to show")]
+        #[clap(default_value = "25")]
+        num_scores: usize,
     },
 }
 
@@ -372,10 +395,15 @@ impl TraneCli {
                 app.show_lesson_instructions(lesson_id)
             }
 
-            Subcommands::ListScores {
-                exercise_id,
-                num_scores,
-            } => app.show_scores(exercise_id, *num_scores),
+            Subcommands::List(ListSubcommands::Courses) => app.list_courses(),
+
+            Subcommands::List(ListSubcommands::Lessons { course_id }) => {
+                app.list_lessons(course_id)
+            }
+
+            Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
+                app.list_exercises(lesson_id)
+            }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
                 app.show_course_material(course_id)
@@ -398,6 +426,11 @@ impl TraneCli {
                 println!("Recorded mastery score {} for current exercise", score);
                 Ok(())
             }
+
+            Subcommands::Scores {
+                exercise_id,
+                num_scores,
+            } => app.show_scores(exercise_id, *num_scores),
         }
     }
 }

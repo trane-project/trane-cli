@@ -327,6 +327,57 @@ impl TraneApp {
         Ok(())
     }
 
+    pub fn list_courses(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let courses = self.trane.as_ref().unwrap().get_course_ids();
+        if courses.is_empty() {
+            println!("No courses in library");
+            return Ok(());
+        }
+
+        println!("Courses:");
+        println!();
+        for course in courses {
+            println!("{}", course);
+        }
+        Ok(())
+    }
+
+    pub fn list_exercises(&self, lesson_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let exercises = self.trane.as_ref().unwrap().get_exercise_ids(lesson_id)?;
+        if exercises.is_empty() {
+            println!("No exercises in lesson {}", lesson_id);
+            return Ok(());
+        }
+
+        println!("Exercises:");
+        println!();
+        for exercise in exercises {
+            println!("{}", exercise);
+        }
+        Ok(())
+    }
+
+    pub fn list_lessons(&self, course_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let lessons = self.trane.as_ref().unwrap().get_lesson_ids(course_id)?;
+        if lessons.is_empty() {
+            println!("No lessons in course {}", course_id);
+            return Ok(());
+        }
+
+        println!("Lessons:");
+        println!();
+        for lesson in lessons {
+            println!("{}", lesson);
+        }
+        Ok(())
+    }
+
     /// Displays the next exercise.
     pub fn next(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");

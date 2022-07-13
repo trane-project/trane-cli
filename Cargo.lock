@@ -69,9 +69,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.8"
+version = "3.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "190814073e85d238f31ff738fcb0bf6910cedeb73376c87cd69291028966fd83"
+checksum = "69c5a7f9997be616e47f0577ee38c91decb33392c5be4866494f34cdf329a9aa"
 dependencies = [
  "atty",
  "bitflags",
@@ -1024,9 +1024,9 @@ dependencies = [
 
 [[package]]
 name = "trane"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38ed6aaebcc5382518217e8d9284c54bfe6884ae48acb1a757d204ce64813f76"
+checksum = "f378aa87371af539688c519f6cc89fb19de155d748787c1b9a701c8941ad1804"
 dependencies = [
  "anyhow",
  "chrono",
