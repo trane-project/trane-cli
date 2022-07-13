@@ -327,6 +327,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Lists the IDs of all the courses in the library.
     pub fn list_courses(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -344,6 +345,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Lists the IDs of all the exercises in the given lesson.
     pub fn list_exercises(&self, lesson_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -361,12 +363,111 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Lists the IDs of all the lessons in the given course.
     pub fn list_lessons(&self, course_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let lessons = self.trane.as_ref().unwrap().get_lesson_ids(course_id)?;
         if lessons.is_empty() {
             println!("No lessons in course {}", course_id);
+            return Ok(());
+        }
+
+        println!("Lessons:");
+        println!();
+        for lesson in lessons {
+            println!("{}", lesson);
+        }
+        Ok(())
+    }
+
+    /// Lists all the courses which match the current filter.
+    pub fn list_matching_courses(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let courses: Vec<String> = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_course_ids()
+            .into_iter()
+            .filter(|course_id| {
+                if self.filter.is_none() {
+                    return true;
+                }
+
+                let filter = self.filter.as_ref().unwrap();
+                let manifest = self.trane.as_ref().unwrap().get_course_manifest(course_id);
+                match manifest {
+                    Some(manifest) => match filter {
+                        UnitFilter::CourseFilter { .. } => filter.apply_course_id(course_id),
+                        UnitFilter::LessonFilter { .. } => false,
+                        UnitFilter::MetadataFilter { .. } => {
+                            filter.apply_course_metadata(&manifest)
+                        }
+                    },
+                    None => false,
+                }
+            })
+            .collect();
+
+        if courses.is_empty() {
+            println!("No matching courses");
+            return Ok(());
+        }
+
+        println!("Matching courses:");
+        println!();
+        for course in courses {
+            println!("{}", course);
+        }
+        Ok(())
+    }
+
+    /// Lists all the lessons in the given course which match the current filter.
+    pub fn list_matching_lessons(&self, course_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let lessons: Vec<String> = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_lesson_ids(course_id)?
+            .into_iter()
+            .filter(|lesson_id| {
+                if self.filter.is_none() {
+                    return true;
+                }
+
+                let filter = self.filter.as_ref().unwrap();
+                let lesson_manifest = self.trane.as_ref().unwrap().get_lesson_manifest(lesson_id);
+                match lesson_manifest {
+                    Some(lesson_manifest) => match filter {
+                        UnitFilter::CourseFilter { .. } => {
+                            filter.apply_course_id(&lesson_manifest.course_id)
+                        }
+                        UnitFilter::LessonFilter { .. } => filter.apply_lesson_id(lesson_id),
+                        UnitFilter::MetadataFilter { .. } => {
+                            let course_manifest = self
+                                .trane
+                                .as_ref()
+                                .unwrap()
+                                .get_course_manifest(&lesson_manifest.course_id);
+                            if course_manifest.is_none() {
+                                // This should never happen but print the lesson ID if it does.
+                                return true;
+                            }
+                            let course_manifest = course_manifest.unwrap();
+                            filter.apply_lesson_metadata(&lesson_manifest, &course_manifest)
+                        }
+                    },
+                    None => false,
+                }
+            })
+            .collect();
+
+        if lessons.is_empty() {
+            println!("No matching lessons in course {}", course_id);
             return Ok(());
         }
 

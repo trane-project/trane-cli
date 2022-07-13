@@ -170,17 +170,27 @@ pub(crate) enum ListSubcommands {
     #[clap(about = "Show the IDs of all courses in the library")]
     Courses,
 
+    #[clap(about = "Show the IDs of all exercises in the given lesson")]
+    Exercises {
+        #[clap(help = "The ID of the lesson")]
+        lesson_id: String,
+    },
+
     #[clap(about = "Show the IDs of all lessons in the given course")]
     Lessons {
         #[clap(help = "The ID of the course")]
         course_id: String,
     },
 
-    #[clap(about = "Show the IDs of all exercises in the given lesson")]
-    Exercises {
-        #[clap(help = "The ID of the lesson")]
-        lesson_id: String,
+    #[clap(about = "Show the IDs of all the lessons in the given course \
+        which match the current filter")]
+    MatchingLessons {
+        #[clap(help = "The ID of the course")]
+        course_id: String,
     },
+
+    #[clap(about = "Show the IDs of all the courses which match the current filter")]
+    MatchingCourses,
 }
 
 /// Contains subcommands used for displaying course and lesson materials.
@@ -397,12 +407,18 @@ impl TraneCli {
 
             Subcommands::List(ListSubcommands::Courses) => app.list_courses(),
 
+            Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
+                app.list_exercises(lesson_id)
+            }
+
             Subcommands::List(ListSubcommands::Lessons { course_id }) => {
                 app.list_lessons(course_id)
             }
 
-            Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
-                app.list_exercises(lesson_id)
+            Subcommands::List(ListSubcommands::MatchingCourses) => app.list_matching_courses(),
+
+            Subcommands::List(ListSubcommands::MatchingLessons { course_id }) => {
+                app.list_matching_lessons(course_id)
             }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
