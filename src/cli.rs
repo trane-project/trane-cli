@@ -209,6 +209,17 @@ pub(crate) enum Subcommands {
     #[clap(subcommand)]
     Instructions(InstructionSubcommands),
 
+    #[clap(about = "List the most recent scores for the given exercise")]
+    ListScores {
+        #[clap(help = "The ID of the exercise")]
+        #[clap(default_value = "")]
+        exercise_id: String,
+
+        #[clap(help = "The number of scores to show")]
+        #[clap(default_value = "25")]
+        num_scores: usize,
+    },
+
     #[clap(about = "Subcommands for showing course and lesson materials")]
     #[clap(subcommand)]
     Material(MaterialSubcommands),
@@ -360,6 +371,11 @@ impl TraneCli {
             Subcommands::Instructions(InstructionSubcommands::Lesson { lesson_id }) => {
                 app.show_lesson_instructions(lesson_id)
             }
+
+            Subcommands::ListScores {
+                exercise_id,
+                num_scores,
+            } => app.show_scores(exercise_id, *num_scores),
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
                 app.show_course_material(course_id)
