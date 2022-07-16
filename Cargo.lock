@@ -1024,9 +1024,9 @@ dependencies = [
 
 [[package]]
 name = "trane"
-version = "0.2.9"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03853adaa1ee5a01ab150b6c8197639332b9bef7648f9e40d74a6e6e9c6fd109"
+checksum = "7ffd98e01687f3b548ca4e5d429a23029fdb40c2eec6781aa3016a736702f597"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1043,7 +1043,7 @@ dependencies = [
 
 [[package]]
 name = "trane-cli"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "anyhow",
  "chrono",
