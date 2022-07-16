@@ -70,7 +70,7 @@ impl TraneApp {
         if let Some(mastery_score) = &self.current_score {
             let curr_exercise = self.current_exercise()?;
             let timestamp = Utc::now().timestamp();
-            self.trane.as_ref().unwrap().record_exercise_score(
+            self.trane.as_ref().unwrap().score_exercise(
                 &curr_exercise.0,
                 mastery_score.clone(),
                 timestamp,
