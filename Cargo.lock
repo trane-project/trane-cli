@@ -1092,7 +1092,8 @@ dependencies = [
 [[package]]
 name = "trane"
 version = "0.3.0"
-source = "git+https://github.com/trane-project/trane?rev=58f397#58f39715548ccdc7e236a8cd843331562f71fead"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdacc280d2c7c7b43845f7bbe6824e48b3f60e9a8f222a06aba2f927df3947b8"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1144,8 +1145,9 @@ checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
 
 [[package]]
 name = "ustr"
-version = "0.8.1"
-source = "git+https://github.com/anderslanglands/ustr#3baa2150b0215a1d4924dc549c33eea770ff94b7"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "371436099f2980de56dc385b615696d3eabbdac9649a72b85f9d75f68474fa9c"
 dependencies = [
  "ahash",
  "byteorder",
