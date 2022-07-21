@@ -3,6 +3,7 @@ use std::str::FromStr;
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 use trane::data::filter::FilterOp;
+use ustr::Ustr;
 
 use crate::app::TraneApp;
 
@@ -33,6 +34,12 @@ impl FromStr for KeyValue {
 /// Contains subcommands for manipulating the unit blacklist.
 #[derive(Debug, Subcommand)]
 pub(crate) enum BlacklistSubcommands {
+    #[clap(about = "Add the given unit to the blacklist")]
+    Add {
+        #[clap(help = "The ID of the unit")]
+        unit_id: Ustr,
+    },
+
     #[clap(about = "Add the ccurrent exercise's lesson to the blacklist")]
     Course,
 
@@ -45,44 +52,26 @@ pub(crate) enum BlacklistSubcommands {
     #[clap(about = "Remove unit from the blacklist")]
     Remove {
         #[clap(help = "The unit to remove from the blacklist")]
-        unit_id: String,
+        unit_id: Ustr,
     },
 
     #[clap(about = "Show the units currently in the blacklist")]
     Show,
-
-    #[clap(about = "Add the given unit to the blacklist")]
-    Unit {
-        #[clap(help = "The ID of the unit")]
-        unit_id: String,
-    },
 }
 
 /// Contains subcommands used for debugging.
 #[derive(Debug, Subcommand)]
 pub(crate) enum DebugSubcommands {
-    #[clap(about = "Prints the ID of the unit with the given UID")]
-    Id {
-        #[clap(help = "The UID of the unit")]
-        unit_uid: u64,
-    },
-
-    #[clap(about = "Prints the UID of the unit with the given ID")]
-    Uid {
-        #[clap(help = "The ID of the unit")]
-        unit_id: String,
-    },
-
     #[clap(about = "Prints information about the given unit")]
     UnitInfo {
         #[clap(help = "The ID of the unit")]
-        unit_id: String,
+        unit_id: Ustr,
     },
 
     #[clap(about = "Prints the type of the unit with the given ID")]
     UnitType {
         #[clap(help = "The ID of the unit")]
-        unit_id: String,
+        unit_id: Ustr,
     },
 }
 
@@ -95,13 +84,13 @@ pub(crate) enum FilterSubcommands {
     #[clap(about = "Set the unit filter to only show exercises from the given course")]
     Course {
         #[clap(help = "The ID of the course")]
-        ids: Vec<String>,
+        ids: Vec<Ustr>,
     },
 
     #[clap(about = "Set the unit filter to only show exercises from the given lesson")]
     Lesson {
         #[clap(help = "The ID of the lesson")]
-        ids: Vec<String>,
+        ids: Vec<Ustr>,
     },
 
     #[clap(about = "List the saved unit filters")]
@@ -152,7 +141,7 @@ pub(crate) enum InstructionSubcommands {
     Course {
         #[clap(help = "The ID of the course")]
         #[clap(default_value = "")]
-        course_id: String,
+        course_id: Ustr,
     },
 
     #[clap(about = "Show the instructions for the given lesson \
@@ -160,7 +149,7 @@ pub(crate) enum InstructionSubcommands {
     Lesson {
         #[clap(help = "The ID of the lesson")]
         #[clap(default_value = "")]
-        lesson_id: String,
+        lesson_id: Ustr,
     },
 }
 
@@ -173,20 +162,20 @@ pub(crate) enum ListSubcommands {
     #[clap(about = "Show the IDs of all exercises in the given lesson")]
     Exercises {
         #[clap(help = "The ID of the lesson")]
-        lesson_id: String,
+        lesson_id: Ustr,
     },
 
     #[clap(about = "Show the IDs of all lessons in the given course")]
     Lessons {
         #[clap(help = "The ID of the course")]
-        course_id: String,
+        course_id: Ustr,
     },
 
     #[clap(about = "Show the IDs of all the lessons in the given course \
         which match the current filter")]
     MatchingLessons {
         #[clap(help = "The ID of the course")]
-        course_id: String,
+        course_id: Ustr,
     },
 
     #[clap(about = "Show the IDs of all the courses which match the current filter")]
@@ -201,7 +190,7 @@ pub(crate) enum MaterialSubcommands {
     Course {
         #[clap(help = "The ID of the course")]
         #[clap(default_value = "")]
-        course_id: String,
+        course_id: Ustr,
     },
 
     #[clap(about = "Show the material for the given lesson \
@@ -209,7 +198,7 @@ pub(crate) enum MaterialSubcommands {
     Lesson {
         #[clap(help = "The ID of the lesson")]
         #[clap(default_value = "")]
-        lesson_id: String,
+        lesson_id: Ustr,
     },
 }
 
@@ -265,7 +254,7 @@ pub(crate) enum Subcommands {
     Scores {
         #[clap(help = "The ID of the exercise")]
         #[clap(default_value = "")]
-        exercise_id: String,
+        exercise_id: Ustr,
 
         #[clap(help = "The number of scores to show")]
         #[clap(default_value = "25")]
@@ -287,6 +276,12 @@ impl TraneCli {
     pub fn execute_subcommand(&self, app: &mut TraneApp) -> Result<()> {
         match &self.commands {
             Subcommands::Answer => app.show_answer(),
+
+            Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
+                app.blacklist_unit(unit_id)?;
+                println!("Added unit {} to the blacklist", unit_id);
+                Ok(())
+            }
 
             Subcommands::Blacklist(BlacklistSubcommands::Course) => {
                 app.blacklist_course()?;
@@ -314,33 +309,18 @@ impl TraneCli {
 
             Subcommands::Blacklist(BlacklistSubcommands::Show) => app.show_blacklist(),
 
-            Subcommands::Blacklist(BlacklistSubcommands::Unit { unit_id }) => {
-                app.blacklist_unit(unit_id)?;
-                println!("Added unit {} to the blacklist", unit_id);
-                Ok(())
-            }
-
             Subcommands::Current => app.current(),
-
-            Subcommands::Debug(DebugSubcommands::Id { unit_uid: uid }) => {
-                let id = app.get_unit_id(*uid)?;
-                println!("The ID for the unit with UID {} is {}", uid, id);
-                Ok(())
-            }
-
-            Subcommands::Debug(DebugSubcommands::Uid { unit_id: id }) => {
-                let uid = app.get_unit_uid(id)?;
-                println!("The UID for the unit with ID {} is {}", id, uid);
-                Ok(())
-            }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
                 app.show_unit_info(unit_id)
             }
 
-            Subcommands::Debug(DebugSubcommands::UnitType { unit_id: id }) => {
-                let unit_type = app.get_unit_type(id)?;
-                println!("The type of the unit with ID {} is {:?}", id, unit_type);
+            Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
+                let unit_type = app.get_unit_type(unit_id)?;
+                println!(
+                    "The type of the unit with ID {} is {:?}",
+                    unit_id, unit_type
+                );
                 Ok(())
             }
 

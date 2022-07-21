@@ -14,6 +14,7 @@ use trane::{
     scheduler::ExerciseScheduler,
     Trane,
 };
+use ustr::Ustr;
 
 use crate::cli::KeyValue;
 use crate::display::{DisplayAnswer, DisplayAsset, DisplayExercise};
@@ -28,7 +29,7 @@ pub(crate) struct TraneApp {
     filter: Option<UnitFilter>,
 
     /// The current batch of exercises.
-    batch: Vec<(String, ExerciseManifest)>,
+    batch: Vec<(Ustr, ExerciseManifest)>,
 
     /// The index of the current exercise in the batch.
     batch_index: usize,
@@ -40,7 +41,7 @@ pub(crate) struct TraneApp {
 
 impl TraneApp {
     /// Returns the current exercise.
-    fn current_exercise(&self) -> Result<(String, ExerciseManifest)> {
+    fn current_exercise(&self) -> Result<(Ustr, ExerciseManifest)> {
         self.batch
             .get(self.batch_index)
             .cloned()
@@ -48,7 +49,7 @@ impl TraneApp {
     }
 
     /// Returns the current exercise's course ID.
-    fn current_exercise_course(&self) -> Result<String> {
+    fn current_exercise_course(&self) -> Result<Ustr> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let (_, manifest) = self.current_exercise()?;
@@ -56,7 +57,7 @@ impl TraneApp {
     }
 
     /// Returns the current exercise's lesson ID.
-    fn current_exercise_lesson(&self) -> Result<String> {
+    fn current_exercise_lesson(&self) -> Result<Ustr> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let (_, manifest) = self.current_exercise()?;
@@ -121,7 +122,7 @@ impl TraneApp {
     }
 
     /// Adds the unit with the given ID to the blacklist.
-    pub fn blacklist_unit(&mut self, unit_id: &str) -> Result<()> {
+    pub fn blacklist_unit(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         self.trane.as_mut().unwrap().add_unit(unit_id)?;
@@ -147,7 +148,7 @@ impl TraneApp {
     }
 
     /// Returns the given course ID or the current exercise's course ID if the given ID is empty.
-    fn course_id_or_current(&self, course_id: &str) -> Result<String> {
+    fn course_id_or_current(&self, course_id: &Ustr) -> Result<Ustr> {
         let current_course = self.current_exercise_course().unwrap_or_default();
         if course_id.is_empty() {
             if current_course.is_empty() {
@@ -156,12 +157,12 @@ impl TraneApp {
                 Ok(current_course)
             }
         } else {
-            Ok(course_id.to_string())
+            Ok(*course_id)
         }
     }
 
     /// Returns the given lesson ID or the current exercise's lesson ID if the given ID is empty.
-    fn lesson_id_or_current(&self, lesson_id: &str) -> Result<String> {
+    fn lesson_id_or_current(&self, lesson_id: &Ustr) -> Result<Ustr> {
         let current_lesson = self.current_exercise_lesson().unwrap_or_default();
         if lesson_id.is_empty() {
             if current_lesson.is_empty() {
@@ -170,26 +171,24 @@ impl TraneApp {
                 Ok(current_lesson)
             }
         } else {
-            Ok(lesson_id.to_string())
+            Ok(*lesson_id)
         }
     }
 
     /// Returns the given exercise ID or the current exercise's ID if the given ID is empty.
-    fn exercise_id_or_current(&self, exercise_id: &str) -> Result<String> {
+    fn exercise_id_or_current(&self, exercise_id: &Ustr) -> Result<Ustr> {
         if exercise_id.is_empty() {
             Ok(self.current_exercise()?.0)
         } else {
-            Ok(exercise_id.to_string())
+            Ok(*exercise_id)
         }
     }
 
     /// Sets the filter to only show exercises from the given course.
-    pub fn filter_course(&mut self, course_ids: &[String]) -> Result<()> {
+    pub fn filter_course(&mut self, course_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         for course_id in course_ids {
-            self.get_unit_uid(course_id)
-                .map_err(|_| anyhow!("missing course with ID {}", course_id))?;
             let unit_type = self.get_unit_type(course_id)?;
             if unit_type != UnitType::Course {
                 return Err(anyhow!("unit with ID {} is not a course", course_id));
@@ -204,12 +203,10 @@ impl TraneApp {
     }
 
     /// Sets the filter to only show exercises from the given lesson.
-    pub fn filter_lesson(&mut self, lesson_ids: &[String]) -> Result<()> {
+    pub fn filter_lesson(&mut self, lesson_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         for lesson_id in lesson_ids {
-            self.get_unit_uid(lesson_id)
-                .map_err(|_| anyhow!("missing lesson with ID {}", lesson_id))?;
             let unit_type = self.get_unit_type(lesson_id)?;
             if unit_type != UnitType::Lesson {
                 return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
@@ -274,38 +271,15 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Returns the UID of the unit with the given ID.
-    pub fn get_unit_uid(&self, unit_id: &str) -> Result<u64> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
-        self.trane
-            .as_ref()
-            .unwrap()
-            .get_uid(unit_id)
-            .ok_or_else(|| anyhow!("missing UID for unit with ID {}", unit_id))
-    }
-
     /// Returns the type of the unit with the given ID.
-    pub fn get_unit_type(&self, unit_id: &str) -> Result<UnitType> {
+    pub fn get_unit_type(&self, unit_id: &Ustr) -> Result<UnitType> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let unit_uid = self.get_unit_uid(unit_id)?;
         self.trane
             .as_ref()
             .unwrap()
-            .get_unit_type(unit_uid)
+            .get_unit_type(unit_id)
             .ok_or_else(|| anyhow!("missing type for unit with ID {}", unit_id))
-    }
-
-    /// Returns the ID of the unit with the given UID.
-    pub fn get_unit_id(&self, unit_uid: u64) -> Result<String> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
-        self.trane
-            .as_ref()
-            .unwrap()
-            .get_id(unit_uid)
-            .ok_or_else(|| anyhow!("missing ID for unit with UID {}", unit_uid))
     }
 
     /// Prints the a list of all the saved unit filters.
@@ -346,7 +320,7 @@ impl TraneApp {
     }
 
     /// Lists the IDs of all the exercises in the given lesson.
-    pub fn list_exercises(&self, lesson_id: &str) -> Result<()> {
+    pub fn list_exercises(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let exercises = self.trane.as_ref().unwrap().get_exercise_ids(lesson_id)?;
@@ -364,7 +338,7 @@ impl TraneApp {
     }
 
     /// Lists the IDs of all the lessons in the given course.
-    pub fn list_lessons(&self, course_id: &str) -> Result<()> {
+    pub fn list_lessons(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let lessons = self.trane.as_ref().unwrap().get_lesson_ids(course_id)?;
@@ -385,7 +359,7 @@ impl TraneApp {
     pub fn list_matching_courses(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let courses: Vec<String> = self
+        let courses: Vec<Ustr> = self
             .trane
             .as_ref()
             .unwrap()
@@ -425,10 +399,10 @@ impl TraneApp {
     }
 
     /// Lists all the lessons in the given course which match the current filter.
-    pub fn list_matching_lessons(&self, course_id: &str) -> Result<()> {
+    pub fn list_matching_lessons(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let lessons: Vec<String> = self
+        let lessons: Vec<Ustr> = self
             .trane
             .as_ref()
             .unwrap()
@@ -574,7 +548,7 @@ impl TraneApp {
         }
     }
 
-    pub fn show_course_instructions(&self, course_id: &str) -> Result<()> {
+    pub fn show_course_instructions(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let course_id = self.course_id_or_current(course_id)?;
@@ -593,7 +567,7 @@ impl TraneApp {
         }
     }
 
-    pub fn show_lesson_instructions(&self, lesson_id: &str) -> Result<()> {
+    pub fn show_lesson_instructions(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let lesson_id = self.lesson_id_or_current(lesson_id)?;
@@ -612,7 +586,7 @@ impl TraneApp {
         }
     }
 
-    pub fn show_course_material(&self, course_id: &str) -> Result<()> {
+    pub fn show_course_material(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let course_id = self.course_id_or_current(course_id)?;
@@ -631,7 +605,7 @@ impl TraneApp {
         }
     }
 
-    pub fn show_lesson_material(&self, lesson_id: &str) -> Result<()> {
+    pub fn show_lesson_material(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let lesson_id = self.lesson_id_or_current(lesson_id)?;
@@ -651,7 +625,7 @@ impl TraneApp {
     }
 
     /// Shows the most recent scores for the given exercise.
-    pub fn show_scores(&self, exercise_id: &str, num_scores: usize) -> Result<()> {
+    pub fn show_scores(&self, exercise_id: &Ustr, num_scores: usize) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
@@ -676,7 +650,7 @@ impl TraneApp {
     }
 
     /// Prints the manifest for the unit with the given UID.
-    fn show_unit_manifest(&self, unit_id: &str, unit_type: UnitType) -> Result<()> {
+    fn show_unit_manifest(&self, unit_id: &Ustr, unit_type: UnitType) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         match unit_type {
@@ -715,19 +689,17 @@ impl TraneApp {
     }
 
     /// Prints information about the given unit.
-    pub fn show_unit_info(&self, unit_id: &str) -> Result<()> {
+    pub fn show_unit_info(&self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let unit_uid = self.get_unit_uid(unit_id)?;
         let unit_type = self.get_unit_type(unit_id)?;
         println!("Unit ID: {}", unit_id);
-        println!("Unit UID: {}", unit_uid);
         println!("Unit type: {:?}", unit_type);
         self.show_unit_manifest(unit_id, unit_type)
     }
 
     /// Removes the given unit from the blacklist.
-    pub fn whitelist(&mut self, unit_id: &str) -> Result<()> {
+    pub fn whitelist(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         self.trane.as_mut().unwrap().remove_unit(unit_id)?;
