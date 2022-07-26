@@ -1,8 +1,7 @@
 [package]
-name = "trane-cli"
-version = "0.2.8"
 edition = "2021"
-
+name = "trane-cli"
+version = "0.3.1"
 [[bin]]
 name = "trane"
 path = "src/main.rs"
@@ -10,11 +9,11 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.58"
 chrono = "0.4.19"
-clap = { version = "3.2.10", features = ["derive"] }
-rustyline = "9.1.2"
+clap = {version = "3.2.10", features = ["derive"]}
+rustyline = "10.0.0"
+rustyline-derive = "0.7.0"
 termimad = "0.20.2"
 trane = "0.3.0"
-ustr = { version = "0.9.0", features = ["serialization"] }
-
+ustr = {version = "0.9.0", features = ["serialization"]}
 # Commented out for use in local development.
 # trane = { path = "../trane" }

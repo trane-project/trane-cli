@@ -2,10 +2,12 @@
 mod app;
 mod cli;
 mod display;
+mod helper;
 
 use anyhow::Result;
 use app::TraneApp;
 use clap::Parser;
+use helper::MyHelper;
 use rustyline::error::ReadlineError;
 use rustyline::{ColorMode, Config, Editor};
 
@@ -19,7 +21,11 @@ fn main() -> Result<()> {
         .color_mode(ColorMode::Enabled)
         .history_ignore_space(true)
         .build();
-    let mut rl = Editor::<()>::with_config(config);
+
+    let mut rl = Editor::<MyHelper>::with_config(config)?;
+
+    let helper = MyHelper::new();
+    rl.set_helper(Some(helper));
 
     let history_path = std::path::Path::new(".trane_history");
     if !history_path.exists() {
@@ -36,9 +42,9 @@ fn main() -> Result<()> {
             eprintln!("Failed to load history file at .trane_history: {}", e);
         }
     }
-
     loop {
-        let readline = rl.readline("\x1b[1;31mtrane >>\x1b[0m ");
+        let readline = rl.readline("trane >> ");
+
         match readline {
             Ok(line) => {
                 let split: Vec<&str> = line.split(' ').into_iter().collect();
