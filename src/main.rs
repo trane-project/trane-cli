@@ -47,7 +47,7 @@ fn main() -> Result<()> {
 
         match readline {
             Ok(line) => {
-                if line.starts_with("#") || line.eq("") {
+                if line.starts_with('#') || line.eq("") {
                     continue;
                 };
                 let split: Vec<&str> = line.split(' ').into_iter().collect();
