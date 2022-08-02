@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{path::Path, str::FromStr};
 
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
@@ -62,6 +62,12 @@ pub(crate) enum BlacklistSubcommands {
 /// Contains subcommands used for debugging.
 #[derive(Debug, Subcommand)]
 pub(crate) enum DebugSubcommands {
+    #[clap(about = "Exports the dependent graph as a DOT file to the given path")]
+    ExportGraph {
+        #[clap(help = "The path to the DOT file")]
+        path: String,
+    },
+
     #[clap(about = "Prints information about the given unit")]
     UnitInfo {
         #[clap(help = "The ID of the unit")]
@@ -158,6 +164,18 @@ pub(crate) enum InstructionSubcommands {
 pub(crate) enum ListSubcommands {
     #[clap(about = "Show the IDs of all courses in the library")]
     Courses,
+
+    #[clap(about = "Show the dependencies of the given unit")]
+    Dependencies {
+        #[clap(help = "The ID of the unit")]
+        unit_id: Ustr,
+    },
+
+    #[clap(about = "Show the dependents of the given unit")]
+    Dependents {
+        #[clap(help = "The ID of the unit")]
+        unit_id: Ustr,
+    },
 
     #[clap(about = "Show the IDs of all exercises in the given lesson")]
     Exercises {
@@ -311,6 +329,12 @@ impl TraneCli {
 
             Subcommands::Current => app.current(),
 
+            Subcommands::Debug(DebugSubcommands::ExportGraph { path }) => {
+                app.export_graph(Path::new(path))?;
+                println!("Exported graph to {}", path);
+                Ok(())
+            }
+
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
                 app.show_unit_info(unit_id)
             }
@@ -386,6 +410,14 @@ impl TraneCli {
             }
 
             Subcommands::List(ListSubcommands::Courses) => app.list_courses(),
+
+            Subcommands::List(ListSubcommands::Dependencies { unit_id }) => {
+                app.list_dependencies(unit_id)
+            }
+
+            Subcommands::List(ListSubcommands::Dependents { unit_id }) => {
+                app.list_dependents(unit_id)
+            }
 
             Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
                 app.list_exercises(lesson_id)

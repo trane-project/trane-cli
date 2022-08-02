@@ -1,4 +1,6 @@
 //! Module containing the state of the application.
+use std::{fs::File, io::Write, path::Path};
+
 use anyhow::{anyhow, ensure, Result};
 use chrono::{Local, TimeZone, Utc};
 use trane::{
@@ -9,7 +11,7 @@ use trane::{
         ExerciseManifest, MasteryScore, UnitType,
     },
     filter_manager::FilterManager,
-    graph::DebugUnitGraph,
+    graph::UnitGraph,
     practice_stats::PracticeStats,
     scheduler::ExerciseScheduler,
     Trane,
@@ -184,6 +186,16 @@ impl TraneApp {
         }
     }
 
+    /// Exports the dependent graph as a DOT file to the given path.
+    pub fn export_graph(&self, path: &Path) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let dot_graph = self.trane.as_ref().unwrap().generate_dot_graph();
+        let mut file = File::create(path)?;
+        file.write_all(dot_graph.as_bytes())?;
+        Ok(())
+    }
+
     /// Sets the filter to only show exercises from the given course.
     pub fn filter_course(&mut self, course_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -315,6 +327,62 @@ impl TraneApp {
         println!();
         for course in courses {
             println!("{}", course);
+        }
+        Ok(())
+    }
+
+    /// Lists the dependencies of the given unit.
+    pub fn list_dependencies(&self, unit_id: &Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let unit_type = self.get_unit_type(unit_id)?;
+        if unit_type == UnitType::Exercise {
+            return Err(anyhow!("Exercises do not have dependencies"));
+        }
+
+        let dependencies = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_dependencies(unit_id)
+            .unwrap_or_default();
+        if dependencies.is_empty() {
+            println!("No dependencies for unit with ID {}", unit_id);
+            return Ok(());
+        }
+
+        println!("Dependencies:");
+        println!();
+        for dependency in dependencies {
+            println!("{}", dependency);
+        }
+        Ok(())
+    }
+
+    /// Lists the dependents of the given unit.
+    pub fn list_dependents(&self, unit_id: &Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let unit_type = self.get_unit_type(unit_id)?;
+        if unit_type == UnitType::Exercise {
+            return Err(anyhow!("Exercises do not have dependents"));
+        }
+
+        let dependents = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_dependents(unit_id)
+            .unwrap_or_default();
+        if dependents.is_empty() {
+            println!("No dependents for unit with ID {}", unit_id);
+            return Ok(());
+        }
+
+        println!("Dependents:");
+        println!();
+        for dependent in dependents {
+            println!("{}", dependent);
         }
         Ok(())
     }
