@@ -10,9 +10,10 @@ Book](https://trane-project.github.io/trane-cli.html). A copy is shown before fo
 
 ## Installation instructions
 
-Github releases include a compiled binary. Download the one for your OS and architecture and put it
-somewhere where you and/or your shell can find it. There are releases for Linux, Windows, and Mac.
-Releases for ARM OS X are not available at the moment because cross-compilation is not working.
+[GitHub releases](https://github.com/trane-project/trane-cli/releases) include pre-compiled
+binaries. Download the one for your OS and architecture and put it somewhere where you and/or your
+shell can find it. There are releases for Linux, Windows, and Mac. Releases for ARM OS X are not
+available at the moment because cross-compilation is not working.
 
 ## Build instructions
 
