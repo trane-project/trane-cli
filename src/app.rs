@@ -798,6 +798,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Adds the given unit to the review list.
     pub fn add_to_review_list(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         ensure!(
@@ -811,6 +812,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Removes the given unit from the review list.
     pub fn remove_from_review_list(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -822,6 +824,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Shows all the units in the review list.
     pub fn show_review_list(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
