@@ -220,6 +220,25 @@ pub(crate) enum MaterialSubcommands {
     },
 }
 
+/// Contains subcommands used for manipulating the review list.
+#[derive(Debug, Subcommand)]
+pub(crate) enum ReviewListSubcommands {
+    #[clap(about = "Add the given unit to the review list")]
+    Add {
+        #[clap(help = "The ID of the unit")]
+        unit_id: Ustr,
+    },
+
+    #[clap(about = "Remove the given unit from the review list")]
+    Remove {
+        #[clap(help = "The ID of the unit")]
+        unit_id: Ustr,
+    },
+
+    #[clap(about = "Show all the units in the review list")]
+    Show,
+}
+
 /// Contains the available subcommands.
 #[derive(Debug, Subcommand)]
 pub(crate) enum Subcommands {
@@ -261,6 +280,10 @@ pub(crate) enum Subcommands {
         #[clap(help = "The path to the course library")]
         library_path: String,
     },
+
+    #[clap(about = "Subcommands for manipulating the review list")]
+    #[clap(subcommand)]
+    ReviewList(ReviewListSubcommands),
 
     #[clap(about = "Record the mastery score (1-5) for the current exercise")]
     Score {
@@ -448,6 +471,20 @@ impl TraneCli {
                 println!("Successfully opened course library at {}", library_path);
                 Ok(())
             }
+
+            Subcommands::ReviewList(ReviewListSubcommands::Add { unit_id }) => {
+                app.add_to_review_list(unit_id)?;
+                println!("Added unit {} to the review list", unit_id);
+                Ok(())
+            }
+
+            Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
+                app.remove_from_review_list(unit_id)?;
+                println!("Removed unit {} from the review list", unit_id);
+                Ok(())
+            }
+
+            Subcommands::ReviewList(ReviewListSubcommands::Show) => app.show_review_list(),
 
             Subcommands::Score { score } => {
                 app.record_score(*score)?;
