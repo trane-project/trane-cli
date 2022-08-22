@@ -13,6 +13,7 @@ use trane::{
     filter_manager::FilterManager,
     graph::UnitGraph,
     practice_stats::PracticeStats,
+    review_list::ReviewList,
     scheduler::ExerciseScheduler,
     Trane,
 };
@@ -93,12 +94,23 @@ impl TraneApp {
         self.current_score = None;
     }
 
+    /// Returns whether the unit with the given ID exists in the currently opened Trane library.
+    fn unit_exists(&self, unit_id: &Ustr) -> Result<bool> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        Ok(self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_unit_type(unit_id)
+            .is_some())
+    }
+
     /// Adds the current exercise's course to the blacklist.
     pub fn blacklist_course(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let course_id = self.current_exercise_course()?;
-        self.trane.as_mut().unwrap().add_unit(&course_id)?;
+        self.trane.as_mut().unwrap().add_to_blacklist(&course_id)?;
         self.reset_batch();
         Ok(())
     }
@@ -108,7 +120,7 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let lesson_id = self.current_exercise_lesson()?;
-        self.trane.as_mut().unwrap().add_unit(&lesson_id)?;
+        self.trane.as_mut().unwrap().add_to_blacklist(&lesson_id)?;
         self.reset_batch();
         Ok(())
     }
@@ -118,7 +130,10 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let (_, manifest) = self.current_exercise()?;
-        self.trane.as_mut().unwrap().add_unit(&manifest.id)?;
+        self.trane
+            .as_mut()
+            .unwrap()
+            .add_to_blacklist(&manifest.id)?;
         self.reset_batch();
         Ok(())
     }
@@ -126,8 +141,13 @@ impl TraneApp {
     /// Adds the unit with the given ID to the blacklist.
     pub fn blacklist_unit(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
+        ensure!(
+            self.unit_exists(unit_id)?,
+            "unit {} does not exist",
+            unit_id
+        );
 
-        self.trane.as_mut().unwrap().add_unit(unit_id)?;
+        self.trane.as_mut().unwrap().add_to_blacklist(unit_id)?;
         self.reset_batch();
         Ok(())
     }
@@ -594,7 +614,7 @@ impl TraneApp {
     pub fn show_blacklist(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let entries = self.trane.as_ref().unwrap().all_entries()?;
+        let entries = self.trane.as_ref().unwrap().all_blacklist_entries()?;
 
         if entries.is_empty() {
             println!("No entries in the blacklist");
@@ -770,8 +790,60 @@ impl TraneApp {
     pub fn whitelist(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        self.trane.as_mut().unwrap().remove_unit(unit_id)?;
+        self.trane
+            .as_mut()
+            .unwrap()
+            .remove_from_blacklist(unit_id)?;
         self.reset_batch();
+        Ok(())
+    }
+
+    /// Adds the given unit to the review list.
+    pub fn add_to_review_list(&mut self, unit_id: &Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        ensure!(
+            self.unit_exists(unit_id)?,
+            "unit {} does not exist",
+            unit_id
+        );
+
+        self.trane.as_mut().unwrap().add_to_review_list(unit_id)?;
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Removes the given unit from the review list.
+    pub fn remove_from_review_list(&mut self, unit_id: &Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        self.trane
+            .as_mut()
+            .unwrap()
+            .remove_from_review_list(unit_id)?;
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Shows all the units in the review list.
+    pub fn show_review_list(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let entries = self.trane.as_ref().unwrap().all_review_list_entries()?;
+        if entries.is_empty() {
+            println!("No entries in the blacklist");
+            return Ok(());
+        }
+
+        println!("Review list:");
+        println!("{:<50} {:<10}", "Unit ID", "Unit type");
+        for unit_id in entries {
+            let unit_type = self.get_unit_type(&unit_id);
+            if unit_type.is_err() {
+                println!("{:<50} {:<10}", unit_id.as_str(), "Unknown");
+            } else {
+                println!("{:<50} {:#<10?}", unit_id.as_str(), unit_type.unwrap());
+            }
+        }
         Ok(())
     }
 }
