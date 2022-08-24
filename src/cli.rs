@@ -129,6 +129,9 @@ pub(crate) enum FilterSubcommands {
         lesson_metadata: Option<Vec<KeyValue>>,
     },
 
+    #[clap(about = "Set the unit filter to only show exercises from the units in the review list")]
+    ReviewList,
+
     #[clap(about = "Set the unit filter to the saved filter with the given ID")]
     SetSaved {
         #[clap(help = "The ID of the saved filter")]
@@ -410,6 +413,12 @@ impl TraneCli {
                 };
                 app.filter_metadata(filter_op, lesson_metadata, course_metadata)?;
                 println!("Set the unit filter to only show exercises with the given metadata");
+                Ok(())
+            }
+
+            Subcommands::Filter(FilterSubcommands::ReviewList) => {
+                app.filter_review_list()?;
+                println!("Set the unit filter to only show exercises in the review list");
                 Ok(())
             }
 

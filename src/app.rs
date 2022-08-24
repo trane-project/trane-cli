@@ -303,6 +303,15 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Sets the filter to only show exercises from the review list.
+    pub fn filter_review_list(&mut self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        self.filter = Some(UnitFilter::ReviewListFilter);
+        self.reset_batch();
+        Ok(())
+    }
+
     /// Returns the type of the unit with the given ID.
     pub fn get_unit_type(&self, unit_id: &Ustr) -> Result<UnitType> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -467,6 +476,7 @@ impl TraneApp {
                         UnitFilter::MetadataFilter { .. } => {
                             filter.apply_course_metadata(&manifest)
                         }
+                        UnitFilter::ReviewListFilter => false,
                     },
                     None => false,
                 }
@@ -522,6 +532,7 @@ impl TraneApp {
                             let course_manifest = course_manifest.unwrap();
                             filter.apply_lesson_metadata(&lesson_manifest, &course_manifest)
                         }
+                        UnitFilter::ReviewListFilter => false,
                     },
                     None => false,
                 }
