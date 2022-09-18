@@ -1,4 +1,4 @@
-//! Inspired by https://github.com/kkawakam/rustyline/blob/master/examples/example.rs
+//! Inspired by `<https://github.com/kkawakam/rustyline/blob/master/examples/example.rs>`
 //! this mod work for Completer and Prompt.
 use std::borrow::Cow::{self, Borrowed, Owned};
 

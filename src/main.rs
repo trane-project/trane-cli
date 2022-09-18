@@ -1,5 +1,9 @@
 //! A command-line interface for Trane.
 mod app;
+mod built_info {
+    // The file has been placed there by the build script.
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
 mod cli;
 mod display;
 mod helper;
@@ -42,6 +46,8 @@ fn main() -> Result<()> {
             eprintln!("Failed to load history file at .trane_history: {}", e);
         }
     }
+
+    print!("{}", TraneApp::startup_message());
     loop {
         let readline = rl.readline("trane >> ");
 
