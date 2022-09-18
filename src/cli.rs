@@ -271,6 +271,17 @@ pub(crate) enum Subcommands {
     #[clap(subcommand)]
     List(ListSubcommands),
 
+    #[clap(
+        about = "Show the number of Tara Sarasvati mantras recited in the background during \
+            the current session"
+    )]
+    #[clap(
+        long_about = "Trane \"recites\" Tara Sarasvati's mantra in the background as a symbolic \
+            way in which users can contribute back to the Trane Project. This command shows the \
+            number of mantras that Trane has recited so far."
+    )]
+    MantraCount,
+
     #[clap(about = "Subcommands for showing course and lesson materials")]
     #[clap(subcommand)]
     Material(MaterialSubcommands),
@@ -468,6 +479,8 @@ impl TraneCli {
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
                 app.show_course_material(course_id)
             }
+
+            Subcommands::MantraCount => app.show_mantra_count(),
 
             Subcommands::Material(MaterialSubcommands::Lesson { lesson_id }) => {
                 app.show_lesson_material(lesson_id)

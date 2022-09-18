@@ -2,7 +2,8 @@
 use std::{fs::File, io::Write, path::Path};
 
 use anyhow::{anyhow, ensure, Result};
-use chrono::{Local, TimeZone, Utc};
+use chrono::{Datelike, Local, TimeZone, Utc};
+use indoc::formatdoc;
 use trane::{
     blacklist::Blacklist,
     course_library::CourseLibrary,
@@ -19,8 +20,8 @@ use trane::{
 };
 use ustr::Ustr;
 
-use crate::cli::KeyValue;
 use crate::display::{DisplayAnswer, DisplayAsset, DisplayExercise};
+use crate::{built_info, cli::KeyValue};
 
 /// Stores the app and its configuration.
 #[derive(Default)]
@@ -43,6 +44,54 @@ pub(crate) struct TraneApp {
 }
 
 impl TraneApp {
+    /// Returns the version of the Trane library dependency used by this binary.
+    fn trane_version() -> Option<String> {
+        for (key, value) in built_info::DEPENDENCIES.iter() {
+            if *key == "trane" {
+                return Some(value.to_string());
+            }
+        }
+        None
+    }
+
+    /// Returns the message shown every time Trane starts up.
+    pub fn startup_message() -> String {
+        formatdoc! {r#"
+                Trane - An automated practice system for learning complex skills
+                
+                Copyright (C) {} The Trane Project
+
+                This program is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+
+                This program is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program.  If not, see <https://www.gnu.org/licenses/>.
+                
+                Trane is dedicated to the memory of John Coltrane and consecrated as
+                an offering to the goddess Tārā Sarasvatī.
+                
+                Om Pemo Yogini Taré Tuttaré Turé Prajna Hrim Hrim Soha
+
+                Trane Version: {}
+                CLI Version: {}
+                Commit Hash: {}
+
+            "#,
+            chrono::Utc::now().year(),
+            built_info::PKG_VERSION,
+            Self::trane_version().unwrap_or("UNKNOWN".to_string()),
+            built_info::GIT_COMMIT_HASH.unwrap_or("UNKNOWN"),
+        }
+        .to_string()
+    }
+
     /// Returns the current exercise.
     fn current_exercise(&self) -> Result<(Ustr, ExerciseManifest)> {
         self.batch
@@ -323,7 +372,7 @@ impl TraneApp {
             .ok_or_else(|| anyhow!("missing type for unit with ID {}", unit_id))
     }
 
-    /// Prints the a list of all the saved unit filters.
+    /// Prints the list of all the saved unit filters.
     pub fn list_filters(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -576,7 +625,7 @@ impl TraneApp {
 
     /// Opens the course library at the given path.
     pub fn open_library(&mut self, library_root: &str) -> Result<()> {
-        let trane = Trane::new(library_root)?;
+        let trane = Trane::new(Path::new(library_root))?;
         self.trane = Some(trane);
         self.batch.drain(..);
         self.batch_index = 0;
@@ -638,6 +687,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Shows the currently set filter.
     pub fn show_filter(&self) {
         if self.filter.is_none() {
             println!("No filter is set");
@@ -647,6 +697,7 @@ impl TraneApp {
         }
     }
 
+    /// Shows the course instructions for the given course.
     pub fn show_course_instructions(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -666,6 +717,7 @@ impl TraneApp {
         }
     }
 
+    /// Shows the lesson instructions for the given lesson.
     pub fn show_lesson_instructions(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -685,6 +737,7 @@ impl TraneApp {
         }
     }
 
+    /// Shows the course material for the given course.
     pub fn show_course_material(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -704,6 +757,7 @@ impl TraneApp {
         }
     }
 
+    /// Shows the lesson material for the given lesson.
     pub fn show_lesson_material(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -721,6 +775,16 @@ impl TraneApp {
             }
             Some(material) => material.display_asset(),
         }
+    }
+
+    /// Shows the current count of
+    pub fn show_mantra_count(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        println!(
+            "Mantra count: {}",
+            self.trane.as_ref().unwrap().mantra_count()
+        );
+        Ok(())
     }
 
     /// Shows the most recent scores for the given exercise.
