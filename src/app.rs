@@ -74,10 +74,10 @@ impl TraneApp {
                 You should have received a copy of the GNU General Public License
                 along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 
-                Trane is dedicated to the memory of John Coltrane and consecrated as
-                an offering to the goddess Tārā Sarasvatī.
+                Trane is dedicated to the memory of John Coltrane and consecrated
+                as an offering to the goddess Tārā Sarasvatī.
                 
-                Om Pemo Yogini Taré Tuttaré Turé Prajna Hrim Hrim Soha
+                Oṃ Padmo-yoginī Tāre Tuttāre Ture Prajñā Hrīṃ Hrīṃ Svāhā
 
                 Trane Version: {}
                 CLI Version: {}
