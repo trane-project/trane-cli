@@ -128,7 +128,7 @@ other commands.
 
 ```
 trane >> help
-trane 0.1.0
+trane 0.5.0
 A command-line interface for Trane
 
 USAGE:
@@ -146,10 +146,15 @@ SUBCOMMANDS:
     filter          Subcommands for dealing with unit filters
     help            Print this message or the help of the given subcommand(s)
     instructions    Subcommands for showing course and lesson instructions
+    list            Subcommands for listing course, lesson, and exercise IDs
+    mantra-count    Show the number of Tara Sarasvati mantras recited in the background during
+                        the current session
     material        Subcommands for showing course and lesson materials
-    next            Proceed to the next exercise
+    next            Submits the score for the current exercise and proceeds to the next
     open            Open the course library at the given location
+    review-list     Subcommands for manipulating the review list
     score           Record the mastery score (1-5) for the current exercise
+    scores          Show the most recent scores for the given exercise
 ```
 
 There are however, some details which warrant further explanation.
