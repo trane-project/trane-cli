@@ -1,9 +1,9 @@
-//! Module containing the state of the application.
-use std::{fs::File, io::Write, path::Path};
+//! Contains the state of the application and the logic to interact with Trane.
 
 use anyhow::{anyhow, ensure, Result};
 use chrono::{Datelike, Local, TimeZone, Utc};
 use indoc::formatdoc;
+use std::{fs::File, io::Write, path::Path};
 use trane::{
     blacklist::Blacklist,
     course_library::CourseLibrary,
@@ -777,7 +777,10 @@ impl TraneApp {
         }
     }
 
-    /// Shows the current count of
+    /// Shows the current count of Tara Sarasvati mantras. Her mantra is "recited" by the
+    /// `mantra-mining` library in the background as a symbolic way in which users can contribute
+    /// back to the maintainers of this program. See more information in the README of the
+    /// `mantra-mining` library.
     pub fn show_mantra_count(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         println!(

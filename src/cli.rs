@@ -1,12 +1,15 @@
-use std::{path::Path, str::FromStr};
+//! Contains the logic to parse and execute command-line instructions.
 
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
+use std::{path::Path, str::FromStr};
 use trane::data::filter::FilterOp;
 use ustr::Ustr;
 
 use crate::app::TraneApp;
 
+/// A key-value pair used to parse course and lesson metadata from the command-line. Pairs are
+/// written in the format `<key>:<value>`. Multiple pairs are separated by spaces.
 #[derive(Clone, Debug)]
 pub(crate) struct KeyValue {
     pub key: String,
@@ -15,6 +18,8 @@ pub(crate) struct KeyValue {
 
 impl FromStr for KeyValue {
     type Err = anyhow::Error;
+
+    /// Parse a string value into a key-value pair.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let key_value: Vec<&str> = s.trim().split(':').collect();
         if key_value.len() != 2 {
@@ -327,7 +332,7 @@ pub(crate) struct TraneCli {
 }
 
 impl TraneCli {
-    /// Executes the parsed command.
+    /// Executes the parsed subcommand.
     pub fn execute_subcommand(&self, app: &mut TraneApp) -> Result<()> {
         match &self.commands {
             Subcommands::Answer => app.show_answer(),

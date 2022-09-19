@@ -1,7 +1,7 @@
-//! Module containing data structures to print assets to the terminal.
-use std::fs::read_to_string;
+//! Contains the logic to print Trane assets to the terminal.
 
 use anyhow::Result;
+use std::fs::read_to_string;
 use termimad::print_inline;
 use trane::data::{BasicAsset, ExerciseAsset, ExerciseManifest};
 

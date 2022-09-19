@@ -1,4 +1,5 @@
 //! A command-line interface for Trane.
+
 mod app;
 mod built_info {
     // The file has been placed there by the build script.
@@ -17,6 +18,7 @@ use rustyline::{ColorMode, Config, Editor};
 
 use crate::cli::TraneCli;
 
+/// The entry-point for the command-line interface.
 fn main() -> Result<()> {
     let mut app = TraneApp::default();
 

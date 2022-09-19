@@ -27,7 +27,7 @@ You can also run `cargo install` to install the binary in the cargo bin director
 ### Running the command
 
 To start the binary call `trane`, if you installed it, or `cargo run` from the repo's root
-directory. As of now, the command line does not take any arguments. Once you start the CLI, you will
+directory. As of now, the binary does not take any arguments. Once you start the CLI, you will
 be met with a prompt.
 
 ```
