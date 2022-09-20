@@ -860,7 +860,7 @@ impl TraneApp {
 
         let unit_type = self.get_unit_type(unit_id)?;
         println!("Unit ID: {}", unit_id);
-        println!("Unit type: {:?}", unit_type);
+        println!("Unit Type: {}", unit_type);
         self.show_unit_manifest(unit_id, unit_type)
     }
 
@@ -913,14 +913,45 @@ impl TraneApp {
         }
 
         println!("Review list:");
-        println!("{:<50} {:<10}", "Unit ID", "Unit type");
+        println!("{:<10} {:<50}", "Unit Type", "Unit ID");
         for unit_id in entries {
             let unit_type = self.get_unit_type(&unit_id);
             if unit_type.is_err() {
-                println!("{:<50} {:<10}", unit_id.as_str(), "Unknown");
+                println!("{:<10} {:<50}", "Unknown", unit_id.as_str());
             } else {
-                println!("{:<50} {:#<10?}", unit_id.as_str(), unit_type.unwrap());
+                println!("{:<10} {:<50}", unit_type.unwrap(), unit_id.as_str());
             }
+        }
+        Ok(())
+    }
+
+    /// Searches for units which match the given query.
+    pub fn search(&self, terms: &Vec<String>) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        ensure!(!terms.is_empty(), "no search terms given");
+
+        let query = terms
+            .iter()
+            .map(|s| {
+                let mut quoted = "\"".to_string();
+                quoted.push_str(s);
+                quoted.push('"');
+                quoted
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let results = self.trane.as_ref().unwrap().search(&query)?;
+
+        if results.is_empty() {
+            println!("No results found");
+            return Ok(());
+        }
+
+        println!("Search results:");
+        println!("{:<10} {:<50}", "Unit Type", "Unit ID");
+        for unit_id in results {
+            let unit_type = self.get_unit_type(&unit_id)?;
+            println!("{:<10} {:<50}", unit_type, unit_id);
         }
         Ok(())
     }

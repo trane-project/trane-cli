@@ -310,6 +310,12 @@ pub(crate) enum Subcommands {
         score: u8,
     },
 
+    #[clap(about = "Search for courses, lessons, and exercises")]
+    Search {
+        #[clap(help = "The search query")]
+        terms: Vec<String>,
+    },
+
     #[clap(about = "Show the most recent scores for the given exercise")]
     Scores {
         #[clap(help = "The ID of the exercise")]
@@ -512,6 +518,8 @@ impl TraneCli {
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Show) => app.show_review_list(),
+
+            Subcommands::Search { terms } => app.search(terms),
 
             Subcommands::Score { score } => {
                 app.record_score(*score)?;
