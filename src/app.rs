@@ -520,10 +520,10 @@ impl TraneApp {
                 let manifest = self.trane.as_ref().unwrap().get_course_manifest(course_id);
                 match manifest {
                     Some(manifest) => match filter {
-                        UnitFilter::CourseFilter { .. } => filter.apply_course_id(course_id),
+                        UnitFilter::CourseFilter { .. } => filter.passes_course_filter(course_id),
                         UnitFilter::LessonFilter { .. } => false,
-                        UnitFilter::MetadataFilter { .. } => {
-                            filter.apply_course_metadata(&manifest)
+                        UnitFilter::MetadataFilter { filter } => {
+                            UnitFilter::course_passes_metadata_filter(filter, &manifest)
                         }
                         UnitFilter::ReviewListFilter => false,
                     },
@@ -565,10 +565,10 @@ impl TraneApp {
                 match lesson_manifest {
                     Some(lesson_manifest) => match filter {
                         UnitFilter::CourseFilter { .. } => {
-                            filter.apply_course_id(&lesson_manifest.course_id)
+                            filter.passes_course_filter(&lesson_manifest.course_id)
                         }
-                        UnitFilter::LessonFilter { .. } => filter.apply_lesson_id(lesson_id),
-                        UnitFilter::MetadataFilter { .. } => {
+                        UnitFilter::LessonFilter { .. } => filter.passes_lesson_filter(lesson_id),
+                        UnitFilter::MetadataFilter { filter } => {
                             let course_manifest = self
                                 .trane
                                 .as_ref()
@@ -579,7 +579,11 @@ impl TraneApp {
                                 return true;
                             }
                             let course_manifest = course_manifest.unwrap();
-                            filter.apply_lesson_metadata(&lesson_manifest, &course_manifest)
+                            UnitFilter::lesson_passes_metadata_filter(
+                                filter,
+                                &course_manifest,
+                                &lesson_manifest,
+                            )
                         }
                         UnitFilter::ReviewListFilter => false,
                     },
