@@ -105,7 +105,7 @@ pub(crate) enum FilterSubcommands {
     },
 
     #[clap(about = "List the saved unit filters")]
-    ListSaved,
+    List,
 
     #[clap(about = "Set the unit filter to only show exercises with the given metadata")]
     Metadata {
@@ -138,7 +138,7 @@ pub(crate) enum FilterSubcommands {
     ReviewList,
 
     #[clap(about = "Set the unit filter to the saved filter with the given ID")]
-    SetSaved {
+    Set {
         #[clap(help = "The ID of the saved filter")]
         id: String,
     },
@@ -420,7 +420,7 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::ListSaved) => app.list_filters(),
+            Subcommands::Filter(FilterSubcommands::List) => app.list_filters(),
 
             Subcommands::Filter(FilterSubcommands::Metadata {
                 all,
@@ -444,7 +444,7 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::SetSaved { id }) => {
+            Subcommands::Filter(FilterSubcommands::Set { id }) => {
                 app.set_filter(id)?;
                 println!("Set the unit filter to the saved filter with ID {}", id);
                 Ok(())
