@@ -92,13 +92,13 @@ pub(crate) enum FilterSubcommands {
     #[clap(about = "Clear the unit filter if any has been set")]
     Clear,
 
-    #[clap(about = "Set the unit filter to only show exercises from the given course")]
+    #[clap(about = "Set the unit filter to only show exercises from the given courses")]
     Course {
         #[clap(help = "The ID of the course")]
         ids: Vec<Ustr>,
     },
 
-    #[clap(about = "Set the unit filter to only show exercises from the given lesson")]
+    #[clap(about = "Set the unit filter to only show exercises from the given lessons")]
     Lesson {
         #[clap(help = "The ID of the lesson")]
         ids: Vec<Ustr>,
