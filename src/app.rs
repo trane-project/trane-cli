@@ -384,9 +384,9 @@ impl TraneApp {
         }
 
         println!("Saved unit filters:");
-        println!("ID\tDescription");
+        println!("{:<30} {:<50}", "ID", "Description");
         for filter in filters {
-            println!("{}\t{}", filter.0, filter.1);
+            println!("{:<30} {:<50}", filter.0, filter.1);
         }
         Ok(())
     }
