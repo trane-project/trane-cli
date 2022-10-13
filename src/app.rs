@@ -86,8 +86,8 @@ impl TraneApp {
 
             "#,
             chrono::Utc::now().year(),
-            built_info::PKG_VERSION,
             Self::trane_version().unwrap_or_else(|| "UNKNOWN".to_string()),
+            built_info::PKG_VERSION,
             built_info::GIT_COMMIT_HASH.unwrap_or("UNKNOWN"),
         }
     }
