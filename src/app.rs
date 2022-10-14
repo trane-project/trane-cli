@@ -678,15 +678,21 @@ impl TraneApp {
     pub fn show_blacklist(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let entries = self.trane.as_ref().unwrap().all_blacklist_entries()?;
-
+        let trane = self.trane.as_ref().unwrap();
+        let entries = trane.all_blacklist_entries()?;
         if entries.is_empty() {
             println!("No entries in the blacklist");
             return Ok(());
         }
-        println!("Blacklist:");
-        for entry in entries {
-            println!("Unit ID: {}", entry);
+
+        println!("{:<15} Unit ID", "Unit Type");
+        for unit_id in entries {
+            let unit_type = if let Some(ut) = trane.get_unit_type(&unit_id) {
+                ut.to_string()
+            } else {
+                "Unknown".to_string()
+            };
+            println!("{:<15} {}", unit_type, unit_id);
         }
         Ok(())
     }
