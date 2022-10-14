@@ -120,16 +120,18 @@ pub(crate) enum FilterSubcommands {
         any: bool,
 
         #[clap(help = "Key-value pairs (written as key:value) of course metadata to filter on")]
+        #[clap(name = "course-metadata")]
         #[clap(long = "course-metadata")]
         #[clap(short = 'c')]
-        #[clap(multiple_values = true)]
+        #[clap(num_args = 1..)]
         #[clap(required_unless_present("lesson-metadata"))]
         course_metadata: Option<Vec<KeyValue>>,
 
         #[clap(help = "Key-value pairs (written as key:value) of lesson metadata to filter on")]
+        #[clap(name = "lesson-metadata")]
         #[clap(long = "lesson-metadata")]
         #[clap(short = 'l')]
-        #[clap(multiple_values = true)]
+        #[clap(num_args = 1..)]
         #[clap(required_unless_present("course-metadata"))]
         lesson_metadata: Option<Vec<KeyValue>>,
     },
