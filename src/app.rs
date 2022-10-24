@@ -663,6 +663,7 @@ impl TraneApp {
             .get_filter(filter_id)
             .ok_or_else(|| anyhow!("no filter with ID {}", filter_id))?;
         self.filter = Some(named_filter.filter);
+        self.reset_batch();
         Ok(())
     }
 
