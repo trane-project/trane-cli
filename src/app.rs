@@ -814,7 +814,7 @@ impl TraneApp {
             .get_scores(&exercise_id, num_scores)?;
 
         let scorer = SimpleScorer {};
-        let aggregate_score = scorer.score(scores.clone());
+        let aggregate_score = scorer.score(&scores);
 
         println!("Scores for exercise {}:", exercise_id);
         println!("Aggregate score: {:.2}", aggregate_score);

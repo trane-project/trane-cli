@@ -1827,19 +1827,21 @@ dependencies = [
 
 [[package]]
 name = "trane"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44da9453d4b8e9c4b395e5ab0474dd792d1c535fd26cd539c89177c23b9b4cf6"
+checksum = "3212a78870cea81dd58a56ad7838476ac0f2f4c709102f646ba05f9e322f75f9"
 dependencies = [
  "anyhow",
  "chrono",
  "derive_builder",
  "indoc",
+ "lazy_static",
  "mantra-miner",
  "parking_lot 0.12.1",
  "r2d2",
  "r2d2_sqlite",
  "rand",
+ "rayon",
  "rusqlite",
  "rusqlite_migration",
  "serde",
@@ -1853,7 +1855,7 @@ dependencies = [
 
 [[package]]
 name = "trane-cli"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "anyhow",
  "built",
