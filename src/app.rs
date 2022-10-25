@@ -391,6 +391,16 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Prints the info of the given units to the terminal.
+    fn print_units_info(&self, unit_ids: &[Ustr]) -> Result<()> {
+        println!("{:<15} {:<50}", "Unit Type", "Unit ID");
+        for unit_id in unit_ids {
+            let unit_type = self.get_unit_type(unit_id)?;
+            println!("{:<15} {:<50}", unit_type, unit_id);
+        }
+        Ok(())
+    }
+
     /// Lists the IDs of all the courses in the library.
     pub fn list_courses(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -403,9 +413,7 @@ impl TraneApp {
 
         println!("Courses:");
         println!();
-        for course in courses {
-            println!("{}", course);
-        }
+        self.print_units_info(&courses)?;
         Ok(())
     }
 
@@ -431,9 +439,7 @@ impl TraneApp {
 
         println!("Dependencies:");
         println!();
-        for dependency in dependencies {
-            println!("{}", dependency);
-        }
+        self.print_units_info(&dependencies.iter().cloned().collect::<Vec<_>>())?;
         Ok(())
     }
 
@@ -459,9 +465,7 @@ impl TraneApp {
 
         println!("Dependents:");
         println!();
-        for dependent in dependents {
-            println!("{}", dependent);
-        }
+        self.print_units_info(&dependents.iter().cloned().collect::<Vec<_>>())?;
         Ok(())
     }
 
@@ -477,9 +481,7 @@ impl TraneApp {
 
         println!("Exercises:");
         println!();
-        for exercise in exercises {
-            println!("{}", exercise);
-        }
+        self.print_units_info(&exercises)?;
         Ok(())
     }
 
@@ -495,9 +497,7 @@ impl TraneApp {
 
         println!("Lessons:");
         println!();
-        for lesson in lessons {
-            println!("{}", lesson);
-        }
+        self.print_units_info(&lessons)?;
         Ok(())
     }
 
