@@ -16,6 +16,7 @@ use trane::{
     practice_stats::PracticeStats,
     review_list::ReviewList,
     scheduler::ExerciseScheduler,
+    scorer::{ExerciseScorer, SimpleScorer},
     Trane,
 };
 use ustr::Ustr;
@@ -812,13 +813,17 @@ impl TraneApp {
             .unwrap()
             .get_scores(&exercise_id, num_scores)?;
 
-        println!("Scores for exercise \"{}\":", exercise_id);
-        println!("{:<20} Score", "Date");
+        let scorer = SimpleScorer {};
+        let aggregate_score = scorer.score(scores.clone());
+
+        println!("Scores for exercise {}:", exercise_id);
+        println!("Aggregate score: {:.2}", aggregate_score);
         println!();
+        println!("{:<25} {:>6}", "Date", "Score");
         for score in scores {
             let dt = Local.timestamp(score.timestamp, 0);
             println!(
-                "{} {:>6}",
+                "{:<25} {:>6}",
                 dt.format("%Y-%m-%d %H:%M:%S"),
                 score.score as u8
             );
