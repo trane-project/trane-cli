@@ -45,7 +45,7 @@ pub(crate) enum BlacklistSubcommands {
         unit_id: Ustr,
     },
 
-    #[clap(about = "Add the ccurrent exercise's course to the blacklist")]
+    #[clap(about = "Add the current exercise's course to the blacklist")]
     Course,
 
     #[clap(about = "Add the current exercise to the blacklist")]
