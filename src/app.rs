@@ -281,6 +281,14 @@ impl TraneApp {
             course_ids: course_ids.to_vec(),
         });
         self.reset_batch();
+
+        println!(
+            "Set the unit filter to only show exercises from the courses with the following IDs:"
+        );
+        println!();
+        for course_id in course_ids {
+            println!("  - {}", course_id);
+        }
         Ok(())
     }
 
@@ -299,6 +307,14 @@ impl TraneApp {
             lesson_ids: lesson_ids.to_vec(),
         });
         self.reset_batch();
+
+        println!(
+            "Set the unit filter to only show exercises from the lessons with the following IDs:"
+        );
+        println!();
+        for lesson_id in lesson_ids {
+            println!("  - {}", lesson_id);
+        }
         Ok(())
     }
 
