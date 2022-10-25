@@ -404,23 +404,9 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::Course { ids }) => {
-                app.filter_course(&ids[..])?;
-                println!(
-                    "Set the unit filter to only show exercises from the course with IDs {:?}",
-                    ids
-                );
-                Ok(())
-            }
+            Subcommands::Filter(FilterSubcommands::Course { ids }) => app.filter_course(&ids[..]),
 
-            Subcommands::Filter(FilterSubcommands::Lesson { ids }) => {
-                app.filter_lesson(ids)?;
-                println!(
-                    "Set the unit filter to only show exercises from the lesson with ID {:?}",
-                    ids
-                );
-                Ok(())
-            }
+            Subcommands::Filter(FilterSubcommands::Lesson { ids }) => app.filter_lesson(ids),
 
             Subcommands::Filter(FilterSubcommands::List) => app.list_filters(),
 
