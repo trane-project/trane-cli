@@ -73,6 +73,13 @@ pub(crate) enum DebugSubcommands {
         path: String,
     },
 
+    #[clap(about = "Trims the storage by removing all trials except for the most recent ones")]
+    TrimScores {
+        #[clap(help = "The number of trials to keep for each exercise")]
+        #[clap(default_value = "25")]
+        num_scores: usize,
+    },
+
     #[clap(about = "Prints information about the given unit")]
     UnitInfo {
         #[clap(help = "The ID of the unit")]
@@ -383,6 +390,10 @@ impl TraneCli {
                 app.export_graph(Path::new(path))?;
                 println!("Exported graph to {}", path);
                 Ok(())
+            }
+
+            Subcommands::Debug(DebugSubcommands::TrimScores { num_scores }) => {
+                app.trim_scores(*num_scores)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {

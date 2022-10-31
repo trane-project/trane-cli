@@ -896,6 +896,15 @@ impl TraneApp {
         self.show_unit_manifest(unit_id, unit_type)
     }
 
+    /// Trims the scores for each exercise by removing all the scores except for the `num_scores`
+    /// most recent scores.
+    pub fn trim_scores(&mut self, num_scores: usize) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().trim_scores(num_scores)?;
+        println!("Trimmed scores for all exercises");
+        Ok(())
+    }
+
     /// Removes the given unit from the blacklist.
     pub fn whitelist(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
