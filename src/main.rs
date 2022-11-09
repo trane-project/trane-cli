@@ -24,6 +24,7 @@ fn main() -> Result<()> {
 
     let config = Config::builder()
         .auto_add_history(true)
+        .max_history_size(2500)
         .color_mode(ColorMode::Enabled)
         .history_ignore_space(true)
         .build();
