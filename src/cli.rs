@@ -76,8 +76,8 @@ pub(crate) enum DebugSubcommands {
     #[clap(about = "Trims the storage by removing all trials except for the most recent ones")]
     TrimScores {
         #[clap(help = "The number of trials to keep for each exercise")]
-        #[clap(default_value = "25")]
-        num_scores: usize,
+        #[clap(default_value = "20")]
+        num_trials: usize,
     },
 
     #[clap(about = "Prints information about the given unit")]
@@ -332,7 +332,7 @@ pub(crate) enum Subcommands {
         exercise_id: Ustr,
 
         #[clap(help = "The number of scores to show")]
-        #[clap(default_value = "25")]
+        #[clap(default_value = "20")]
         num_scores: usize,
     },
 }
@@ -392,8 +392,8 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Debug(DebugSubcommands::TrimScores { num_scores }) => {
-                app.trim_scores(*num_scores)
+            Subcommands::Debug(DebugSubcommands::TrimScores { num_trials }) => {
+                app.trim_scores(*num_trials)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
