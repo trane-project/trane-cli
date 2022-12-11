@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "trane-cli"
-version = "0.7.3"
+version = "0.8.0"
 build = "build.rs"
 
 [[bin]]
@@ -9,18 +9,18 @@ name = "trane"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.65"
-built = { version = "0.5.1", features = ["chrono", "git2", "semver"] }
-chrono = "0.4.22"
-clap = { version = "4.0.15", features = ["derive"] }
+anyhow = "1.0.66"
+built = { version = "0.5.2", features = ["chrono", "git2", "semver"] }
+chrono = "0.4.23"
+clap = { version = "4.0.29", features = ["derive"] }
 indoc = "1.0.7"
 rustyline = "10.0.0"
 rustyline-derive = "0.7.0"
-termimad = "0.20.3"
-trane = "0.7.2"
+termimad = "0.20.4"
+trane = "0.8.0"
 ustr = { version = "0.9.0", features = ["serialization"] }
 # Commented out for use in local development.
 # trane = { path = "../trane" }
 
 [build-dependencies]
-built = { version = "0.5.1", features = ["chrono", "git2", "semver"] }
+built = { version = "0.5.2", features = ["chrono", "git2", "semver"] }

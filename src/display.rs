@@ -22,6 +22,14 @@ impl DisplayAsset for BasicAsset {
     fn display_asset(&self) -> Result<()> {
         match self {
             BasicAsset::MarkdownAsset { path } => print_markdown(path),
+            BasicAsset::InlinedAsset { content } => {
+                print_inline(content);
+                Ok(())
+            }
+            BasicAsset::InlinedUniqueAsset { content } => {
+                print_inline(content);
+                Ok(())
+            }
         }
     }
 }
@@ -36,10 +44,13 @@ impl DisplayExercise for ExerciseAsset {
     fn display_exercise(&self) -> Result<()> {
         match self {
             ExerciseAsset::FlashcardAsset { front_path, .. } => print_markdown(front_path),
-            ExerciseAsset::SoundSliceAsset { link, description } => {
+            ExerciseAsset::SoundSliceAsset {
+                link, description, ..
+            } => {
                 if let Some(description) = description {
                     println!("Exercise description:");
                     print_inline(description);
+                    println!()
                 }
                 println!("SoundSlice link: {}", link);
                 Ok(())
@@ -53,8 +64,10 @@ impl DisplayExercise for ExerciseManifest {
         println!("Course ID: {}", self.course_id);
         println!("Lesson ID: {}", self.lesson_id);
         println!("Exercise ID: {}", self.id);
-        if self.description.is_some() {
-            println!("Description: {}", self.description.as_ref().unwrap());
+        println!();
+        println!("Exercise name: {}", self.name);
+        if let Some(description) = &self.description {
+            println!("Exercise description: {}", description);
         }
         println!();
         self.exercise_asset.display_exercise()?;
