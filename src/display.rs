@@ -25,10 +25,12 @@ impl DisplayAsset for BasicAsset {
             BasicAsset::MarkdownAsset { path } => print_markdown(path),
             BasicAsset::InlinedAsset { content } => {
                 print_inline(content);
+                println!();
                 Ok(())
             }
             BasicAsset::InlinedUniqueAsset { content } => {
                 print_inline(content);
+                println!();
                 Ok(())
             }
         }
