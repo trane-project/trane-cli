@@ -9,14 +9,14 @@ name = "trane"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.66"
+anyhow = "1.0.68"
 built = { version = "0.5.2", features = ["chrono", "git2", "semver"] }
 chrono = "0.4.23"
-clap = { version = "4.0.29", features = ["derive"] }
-indoc = "1.0.7"
+clap = { version = "4.0.32", features = ["derive"] }
+indoc = "1.0.8"
 rustyline = "10.0.0"
 rustyline-derive = "0.7.0"
-termimad = "0.20.4"
+termimad = "0.20.6"
 # trane = "0.8.0"
 ustr = { version = "0.9.0", features = ["serialization"] }
 # Commented out for use in local development.
