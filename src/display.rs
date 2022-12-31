@@ -9,6 +9,7 @@ use trane::data::{BasicAsset, ExerciseAsset, ExerciseManifest};
 pub fn print_markdown(path: &str) -> Result<()> {
     let contents = read_to_string(path)?;
     print_inline(&contents);
+    println!();
     Ok(())
 }
 
@@ -55,6 +56,7 @@ impl DisplayExercise for ExerciseAsset {
                 println!("SoundSlice link: {}", link);
                 Ok(())
             }
+            ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
         }
     }
 }
@@ -86,6 +88,7 @@ impl DisplayAnswer for ExerciseAsset {
         match self {
             ExerciseAsset::FlashcardAsset { back_path, .. } => print_markdown(back_path),
             ExerciseAsset::SoundSliceAsset { .. } => Ok(()),
+            ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
         }
     }
 }

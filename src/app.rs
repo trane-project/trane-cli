@@ -646,7 +646,7 @@ impl TraneApp {
 
     /// Opens the course library at the given path.
     pub fn open_library(&mut self, library_root: &str) -> Result<()> {
-        let trane = Trane::new(Path::new(library_root))?;
+        let trane = Trane::new(&std::env::current_dir()?, Path::new(library_root))?;
         self.trane = Some(trane);
         self.batch.drain(..);
         self.batch_index = 0;
