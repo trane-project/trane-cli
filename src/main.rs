@@ -75,7 +75,7 @@ fn main() -> Result<()> {
 
                 match cli.unwrap().execute_subcommand(&mut app) {
                     Ok(()) => (),
-                    Err(err) => println!("Error: {}", err),
+                    Err(err) => println!("Error: {:#}", err),
                 }
             }
             Err(ReadlineError::Interrupted) => {
@@ -91,7 +91,7 @@ fn main() -> Result<()> {
                 break;
             }
             Err(err) => {
-                println!("Error: {}", err);
+                println!("Error: {:#}", err);
                 break;
             }
         }
