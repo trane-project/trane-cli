@@ -17,7 +17,7 @@ indoc = "1.0.8"
 rustyline = "10.0.0"
 rustyline-derive = "0.7.0"
 termimad = "0.20.6"
-trane = "0.9.0"
+trane = "0.9.1"
 ustr = { version = "0.9.0", features = ["serialization"] }
 # Commented out for use in local development.
 # trane = { path = "../trane" }
