@@ -39,14 +39,14 @@ fn main() -> Result<()> {
         match std::fs::File::create(history_path) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Failed to create history file: {}", e);
+                eprintln!("Failed to create history file: {e}");
             }
         }
     }
     match rl.load_history(history_path) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Failed to load history file at .trane_history: {}", e);
+            eprintln!("Failed to load history file at .trane_history: {e}");
         }
     }
 
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
 
                 match cli.unwrap().execute_subcommand(&mut app) {
                     Ok(()) => (),
-                    Err(err) => println!("Error: {:#}", err),
+                    Err(err) => println!("Error: {err:#}"),
                 }
             }
             Err(ReadlineError::Interrupted) => {
@@ -91,7 +91,7 @@ fn main() -> Result<()> {
                 break;
             }
             Err(err) => {
-                println!("Error: {:#}", err);
+                println!("Error: {err:#}");
                 break;
             }
         }
@@ -100,7 +100,7 @@ fn main() -> Result<()> {
     match rl.save_history(history_path) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Failed to save history to file .trane_history: {}", e);
+            eprintln!("Failed to save history to file .trane_history: {e}");
         }
     }
     Ok(())

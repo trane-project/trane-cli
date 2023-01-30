@@ -55,7 +55,7 @@ impl DisplayExercise for ExerciseAsset {
                     print_inline(description);
                     println!()
                 }
-                println!("SoundSlice link: {}", link);
+                println!("SoundSlice link: {link}");
                 Ok(())
             }
             ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
@@ -71,7 +71,7 @@ impl DisplayExercise for ExerciseManifest {
         println!();
         println!("Exercise name: {}", self.name);
         if let Some(description) = &self.description {
-            println!("Exercise description: {}", description);
+            println!("Exercise description: {description}");
         }
         println!();
         self.exercise_asset.display_exercise()?;
