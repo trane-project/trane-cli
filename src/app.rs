@@ -1,6 +1,6 @@
 //! Contains the state of the application and the logic to interact with Trane.
 
-use anyhow::{anyhow, ensure, Result};
+use anyhow::{anyhow, bail, ensure, Result};
 use chrono::{Datelike, Local, TimeZone, Utc};
 use indoc::formatdoc;
 use std::{fs::File, io::Write, path::Path};
@@ -273,7 +273,7 @@ impl TraneApp {
         for course_id in course_ids {
             let unit_type = self.get_unit_type(course_id)?;
             if unit_type != UnitType::Course {
-                return Err(anyhow!("unit with ID {} is not a course", course_id));
+                bail!("Unit with ID {} is not a course", course_id);
             }
         }
 
@@ -299,7 +299,7 @@ impl TraneApp {
         for lesson_id in lesson_ids {
             let unit_type = self.get_unit_type(lesson_id)?;
             if unit_type != UnitType::Lesson {
-                return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
+                bail!("Unit with ID {} is not a lesson", lesson_id);
             }
         }
 
@@ -440,7 +440,7 @@ impl TraneApp {
 
         let unit_type = self.get_unit_type(unit_id)?;
         if unit_type == UnitType::Exercise {
-            return Err(anyhow!("Exercises do not have dependencies"));
+            bail!("Exercises do not have dependencies");
         }
 
         let dependencies = self
@@ -466,7 +466,7 @@ impl TraneApp {
 
         let unit_type = self.get_unit_type(unit_id)?;
         if unit_type == UnitType::Exercise {
-            return Err(anyhow!("Exercises do not have dependents"));
+            bail!("Exercises do not have dependents");
         }
 
         let dependents = self
@@ -822,16 +822,23 @@ impl TraneApp {
     pub fn show_scores(&self, exercise_id: &Ustr, num_scores: usize) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        // Retrieve and validate the exercise ID.
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(&exercise_id) {
+        } else {
+            bail!("Unit with ID {} is not a valid exercise", exercise_id);
+        }
+
+        // Retrieve the scores and compute the aggregate score.
         let scores = self
             .trane
             .as_ref()
             .unwrap()
             .get_scores(&exercise_id, num_scores)?;
-
         let scorer = SimpleScorer {};
         let aggregate_score = scorer.score(&scores)?;
 
+        // Print the scores.
         println!("Scores for exercise {}:", exercise_id);
         println!("Aggregate score: {:.2}", aggregate_score);
         println!();
