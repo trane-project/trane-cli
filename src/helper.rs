@@ -29,7 +29,7 @@ impl Highlighter for MyHelper {
         default: bool,
     ) -> Cow<'b, str> {
         if default {
-            Owned(format!("\x1b[1;31m{}\x1b[0m", prompt))
+            Owned(format!("\x1b[1;31m{prompt}\x1b[0m"))
         } else {
             Borrowed(prompt)
         }

@@ -1,6 +1,6 @@
 //! Contains the state of the application and the logic to interact with Trane.
 
-use anyhow::{anyhow, ensure, Result};
+use anyhow::{anyhow, bail, ensure, Result};
 use chrono::{Datelike, Local, TimeZone, Utc};
 use indoc::formatdoc;
 use std::{fs::File, io::Write, path::Path};
@@ -273,7 +273,7 @@ impl TraneApp {
         for course_id in course_ids {
             let unit_type = self.get_unit_type(course_id)?;
             if unit_type != UnitType::Course {
-                return Err(anyhow!("unit with ID {} is not a course", course_id));
+                bail!("Unit with ID {} is not a course", course_id);
             }
         }
 
@@ -287,7 +287,7 @@ impl TraneApp {
         );
         println!();
         for course_id in course_ids {
-            println!("  - {}", course_id);
+            println!("  - {course_id}");
         }
         Ok(())
     }
@@ -299,7 +299,7 @@ impl TraneApp {
         for lesson_id in lesson_ids {
             let unit_type = self.get_unit_type(lesson_id)?;
             if unit_type != UnitType::Lesson {
-                return Err(anyhow!("unit with ID {} is not a lesson", lesson_id));
+                bail!("Unit with ID {} is not a lesson", lesson_id);
             }
         }
 
@@ -313,7 +313,7 @@ impl TraneApp {
         );
         println!();
         for lesson_id in lesson_ids {
-            println!("  - {}", lesson_id);
+            println!("  - {lesson_id}");
         }
         Ok(())
     }
@@ -413,7 +413,7 @@ impl TraneApp {
         println!("{:<15} {:<50}", "Unit Type", "Unit ID");
         for unit_id in unit_ids {
             let unit_type = self.get_unit_type(unit_id)?;
-            println!("{:<15} {:<50}", unit_type, unit_id);
+            println!("{unit_type:<15} {unit_id:<50}");
         }
         Ok(())
     }
@@ -440,7 +440,7 @@ impl TraneApp {
 
         let unit_type = self.get_unit_type(unit_id)?;
         if unit_type == UnitType::Exercise {
-            return Err(anyhow!("Exercises do not have dependencies"));
+            bail!("Exercises do not have dependencies");
         }
 
         let dependencies = self
@@ -450,7 +450,7 @@ impl TraneApp {
             .get_dependencies(unit_id)
             .unwrap_or_default();
         if dependencies.is_empty() {
-            println!("No dependencies for unit with ID {}", unit_id);
+            println!("No dependencies for unit with ID {unit_id}");
             return Ok(());
         }
 
@@ -466,7 +466,7 @@ impl TraneApp {
 
         let unit_type = self.get_unit_type(unit_id)?;
         if unit_type == UnitType::Exercise {
-            return Err(anyhow!("Exercises do not have dependents"));
+            bail!("Exercises do not have dependents");
         }
 
         let dependents = self
@@ -476,7 +476,7 @@ impl TraneApp {
             .get_dependents(unit_id)
             .unwrap_or_default();
         if dependents.is_empty() {
-            println!("No dependents for unit with ID {}", unit_id);
+            println!("No dependents for unit with ID {unit_id}");
             return Ok(());
         }
 
@@ -492,7 +492,7 @@ impl TraneApp {
 
         let exercises = self.trane.as_ref().unwrap().get_exercise_ids(lesson_id)?;
         if exercises.is_empty() {
-            println!("No exercises in lesson {}", lesson_id);
+            println!("No exercises in lesson {lesson_id}");
             return Ok(());
         }
 
@@ -508,7 +508,7 @@ impl TraneApp {
 
         let lessons = self.trane.as_ref().unwrap().get_lesson_ids(course_id)?;
         if lessons.is_empty() {
-            println!("No lessons in course {}", course_id);
+            println!("No lessons in course {course_id}");
             return Ok(());
         }
 
@@ -557,7 +557,7 @@ impl TraneApp {
         println!("Matching courses:");
         println!();
         for course in courses {
-            println!("{}", course);
+            println!("{course}");
         }
         Ok(())
     }
@@ -610,14 +610,14 @@ impl TraneApp {
             .collect();
 
         if lessons.is_empty() {
-            println!("No matching lessons in course {}", course_id);
+            println!("No matching lessons in course {course_id}");
             return Ok(());
         }
 
         println!("Lessons:");
         println!();
         for lesson in lessons {
-            println!("{}", lesson);
+            println!("{lesson}");
         }
         Ok(())
     }
@@ -710,7 +710,7 @@ impl TraneApp {
             } else {
                 "Unknown".to_string()
             };
-            println!("{:<15} {}", unit_type, unit_id);
+            println!("{unit_type:<15} {unit_id}");
         }
         Ok(())
     }
@@ -822,18 +822,25 @@ impl TraneApp {
     pub fn show_scores(&self, exercise_id: &Ustr, num_scores: usize) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        // Retrieve and validate the exercise ID.
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(&exercise_id) {
+        } else {
+            bail!("Unit with ID {} is not a valid exercise", exercise_id);
+        }
+
+        // Retrieve the scores and compute the aggregate score.
         let scores = self
             .trane
             .as_ref()
             .unwrap()
             .get_scores(&exercise_id, num_scores)?;
-
         let scorer = SimpleScorer {};
         let aggregate_score = scorer.score(&scores)?;
 
-        println!("Scores for exercise {}:", exercise_id);
-        println!("Aggregate score: {:.2}", aggregate_score);
+        // Print the scores.
+        println!("Scores for exercise {exercise_id}:");
+        println!("Aggregate score: {aggregate_score:.2}");
         println!();
         println!("{:<25} {:>6}", "Date", "Score");
         for score in scores {
@@ -861,7 +868,7 @@ impl TraneApp {
                     .get_exercise_manifest(unit_id)
                     .ok_or_else(|| anyhow!("missing manifest for exercise {}", unit_id))?;
                 println!("Unit manifest:");
-                println!("{:#?}", manifest);
+                println!("{manifest:#?}");
             }
             UnitType::Lesson => {
                 let manifest = self
@@ -871,7 +878,7 @@ impl TraneApp {
                     .get_lesson_manifest(unit_id)
                     .ok_or_else(|| anyhow!("missing manifest for lesson {}", unit_id))?;
                 println!("Unit manifest:");
-                println!("{:#?}", manifest);
+                println!("{manifest:#?}");
             }
             UnitType::Course => {
                 let manifest = self
@@ -881,7 +888,7 @@ impl TraneApp {
                     .get_course_manifest(unit_id)
                     .ok_or_else(|| anyhow!("missing manifest for course {}", unit_id))?;
                 println!("Unit manifest:");
-                println!("{:#?}", manifest);
+                println!("{manifest:#?}");
             }
         };
         Ok(())
@@ -892,8 +899,8 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let unit_type = self.get_unit_type(unit_id)?;
-        println!("Unit ID: {}", unit_id);
-        println!("Unit Type: {}", unit_type);
+        println!("Unit ID: {unit_id}");
+        println!("Unit Type: {unit_type}");
         self.show_unit_manifest(unit_id, unit_type)
     }
 
@@ -993,7 +1000,7 @@ impl TraneApp {
         println!("{:<10} {:<50}", "Unit Type", "Unit ID");
         for unit_id in results {
             let unit_type = self.get_unit_type(&unit_id)?;
-            println!("{:<10} {:<50}", unit_type, unit_id);
+            println!("{unit_type:<10} {unit_id:<50}");
         }
         Ok(())
     }

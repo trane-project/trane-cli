@@ -354,7 +354,7 @@ impl TraneCli {
 
             Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
                 app.blacklist_unit(unit_id)?;
-                println!("Added unit {} to the blacklist", unit_id);
+                println!("Added unit {unit_id} to the blacklist");
                 Ok(())
             }
 
@@ -378,7 +378,7 @@ impl TraneCli {
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
                 app.whitelist(unit_id)?;
-                println!("Removed {} from the blacklist", unit_id);
+                println!("Removed {unit_id} from the blacklist");
                 Ok(())
             }
 
@@ -388,7 +388,7 @@ impl TraneCli {
 
             Subcommands::Debug(DebugSubcommands::ExportGraph { path }) => {
                 app.export_graph(Path::new(path))?;
-                println!("Exported graph to {}", path);
+                println!("Exported graph to {path}");
                 Ok(())
             }
 
@@ -402,10 +402,7 @@ impl TraneCli {
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
                 let unit_type = app.get_unit_type(unit_id)?;
-                println!(
-                    "The type of the unit with ID {} is {:?}",
-                    unit_id, unit_type
-                );
+                println!("The type of the unit with ID {unit_id} is {unit_type:?}");
                 Ok(())
             }
 
@@ -445,7 +442,7 @@ impl TraneCli {
 
             Subcommands::Filter(FilterSubcommands::Set { id }) => {
                 app.set_filter(id)?;
-                println!("Set the unit filter to the saved filter with ID {}", id);
+                println!("Set the unit filter to the saved filter with ID {id}");
                 Ok(())
             }
 
@@ -500,19 +497,19 @@ impl TraneCli {
 
             Subcommands::Open { library_path } => {
                 app.open_library(library_path)?;
-                println!("Successfully opened course library at {}", library_path);
+                println!("Successfully opened course library at {library_path}");
                 Ok(())
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Add { unit_id }) => {
                 app.add_to_review_list(unit_id)?;
-                println!("Added unit {} to the review list", unit_id);
+                println!("Added unit {unit_id} to the review list");
                 Ok(())
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
                 app.remove_from_review_list(unit_id)?;
-                println!("Removed unit {} from the review list", unit_id);
+                println!("Removed unit {unit_id} from the review list");
                 Ok(())
             }
 
@@ -522,7 +519,7 @@ impl TraneCli {
 
             Subcommands::Score { score } => {
                 app.record_score(*score)?;
-                println!("Recorded mastery score {} for current exercise", score);
+                println!("Recorded mastery score {score} for current exercise");
                 Ok(())
             }
 
