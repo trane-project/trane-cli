@@ -88,7 +88,13 @@ pub trait DisplayAnswer {
 impl DisplayAnswer for ExerciseAsset {
     fn display_answer(&self) -> Result<()> {
         match self {
-            ExerciseAsset::FlashcardAsset { back_path, .. } => print_markdown(back_path),
+            ExerciseAsset::FlashcardAsset { back_path, .. } => {
+                if let Some(back_path) = back_path {
+                    print_markdown(back_path)
+                } else {
+                    Ok(())
+                }
+            }
             ExerciseAsset::SoundSliceAsset { .. } => Ok(()),
             ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
         }
