@@ -8,7 +8,7 @@ use trane::data::{BasicAsset, ExerciseAsset, ExerciseManifest};
 /// Prints the markdown file at the given path to the terminal.
 pub fn print_markdown(path: &str) -> Result<()> {
     let contents =
-        read_to_string(path).with_context(|| format!("Failed to read file at path: {}", path))?;
+        read_to_string(path).with_context(|| format!("Failed to read file at path: {path}"))?;
     print_inline(&contents);
     println!();
     Ok(())
