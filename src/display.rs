@@ -72,8 +72,8 @@ impl DisplayExercise for ExerciseManifest {
         println!();
         if let Some(description) = &self.description {
             println!("Exercise description: {description}");
+            println!();
         }
-        println!();
         self.exercise_asset.display_exercise()?;
         Ok(())
     }
