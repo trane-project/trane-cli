@@ -1,13 +1,14 @@
 //! Contains the logic to print Trane assets to the terminal.
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::fs::read_to_string;
 use termimad::print_inline;
 use trane::data::{BasicAsset, ExerciseAsset, ExerciseManifest};
 
 /// Prints the markdown file at the given path to the terminal.
 pub fn print_markdown(path: &str) -> Result<()> {
-    let contents = read_to_string(path)?;
+    let contents =
+        read_to_string(path).with_context(|| format!("Failed to read file at path: {path}"))?;
     print_inline(&contents);
     println!();
     Ok(())
@@ -69,7 +70,6 @@ impl DisplayExercise for ExerciseManifest {
         println!("Lesson ID: {}", self.lesson_id);
         println!("Exercise ID: {}", self.id);
         println!();
-        println!("Exercise name: {}", self.name);
         if let Some(description) = &self.description {
             println!("Exercise description: {description}");
         }
@@ -90,13 +90,20 @@ impl DisplayAnswer for ExerciseAsset {
         match self {
             ExerciseAsset::FlashcardAsset { back_path, .. } => {
                 if let Some(back_path) = back_path {
+                    println!("Answer:");
+                    println!();
                     print_markdown(back_path)
                 } else {
+                    println!("No answer available for this exercise.");
                     Ok(())
                 }
             }
             ExerciseAsset::SoundSliceAsset { .. } => Ok(()),
-            ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
+            ExerciseAsset::BasicAsset(asset) => {
+                println!("Answer:");
+                println!();
+                asset.display_asset()
+            }
         }
     }
 }
@@ -106,7 +113,6 @@ impl DisplayAnswer for ExerciseManifest {
         println!("Course ID: {}", self.course_id);
         println!("Lesson ID: {}", self.lesson_id);
         println!("Exercise ID: {}", self.id);
-        println!("Answer:");
         println!();
         self.exercise_asset.display_answer()?;
         Ok(())
