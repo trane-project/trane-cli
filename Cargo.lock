@@ -1905,8 +1905,6 @@ dependencies = [
 [[package]]
 name = "trane"
 version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0eb2f282a4d8d5b8c9b8c09d9d72a0d57b5cca8b7e1245fbb8efa8aacfabd407"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1941,6 +1939,7 @@ dependencies = [
  "indoc",
  "rustyline",
  "rustyline-derive",
+ "serde_json",
  "termimad",
  "trane",
  "ustr",
