@@ -14,7 +14,7 @@ pub(crate) struct SimpleBuild {
     config_file: String,
 
     #[clap(help = "The directory to which to build the course")]
-    directory: String
+    directory: String,
 }
 
 fn main() -> Result<()> {
@@ -28,5 +28,5 @@ fn main() -> Result<()> {
 
     // Build the course.
     let directory = &current_dir()?.join(&args.directory);
-    simple_course.build(&directory)
+    simple_course.build(directory)
 }
