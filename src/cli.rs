@@ -37,7 +37,7 @@ impl FromStr for KeyValue {
 }
 
 /// Contains subcommands for manipulating the unit blacklist.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum BlacklistSubcommands {
     #[clap(about = "Add the given unit to the blacklist")]
     Add {
@@ -65,7 +65,7 @@ pub(crate) enum BlacklistSubcommands {
 }
 
 /// Contains subcommands used for debugging.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum DebugSubcommands {
     #[clap(about = "Exports the dependent graph as a DOT file to the given path")]
     ExportGraph {
@@ -94,20 +94,20 @@ pub(crate) enum DebugSubcommands {
 }
 
 /// Contains subcommands used for setting and displaying unit filters.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum FilterSubcommands {
     #[clap(about = "Clear the unit filter if any has been set")]
     Clear,
 
     #[clap(about = "Set the unit filter to only show exercises from the given courses")]
-    Course {
-        #[clap(help = "The ID of the course")]
+    Courses {
+        #[clap(help = "The IDs of the courses")]
         ids: Vec<Ustr>,
     },
 
     #[clap(about = "Set the unit filter to only show exercises from the given lessons")]
-    Lesson {
-        #[clap(help = "The ID of the lesson")]
+    Lessons {
+        #[clap(help = "The IDs of the lessons")]
         ids: Vec<Ustr>,
     },
 
@@ -146,6 +146,25 @@ pub(crate) enum FilterSubcommands {
     #[clap(about = "Set the unit filter to only show exercises from the units in the review list")]
     ReviewList,
 
+    #[clap(
+        about = "Save the unit filter to only search from the given units and their dependents"
+    )]
+    Dependents {
+        #[clap(help = "The IDs of the units")]
+        ids: Vec<Ustr>,
+    },
+
+    #[clap(
+        about = "Save the unit filter to only search from the given units and their dependencies"
+    )]
+    Dependencies {
+        #[clap(help = "The IDs of the units")]
+        ids: Vec<Ustr>,
+
+        #[clap(help = "The maximum depth to search for dependencies")]
+        depth: usize,
+    },
+
     #[clap(about = "Set the unit filter to the saved filter with the given ID")]
     Set {
         #[clap(help = "The ID of the saved filter")]
@@ -157,7 +176,7 @@ pub(crate) enum FilterSubcommands {
 }
 
 /// Contains subcommands used for displaying course and lesson instructions.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum InstructionSubcommands {
     #[clap(about = "Show the instructions for the given course \
         (or the current course if none is passed)")]
@@ -177,7 +196,7 @@ pub(crate) enum InstructionSubcommands {
 }
 
 /// Contains subcommands used for displaying courses, lessons, and exercises IDs.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum ListSubcommands {
     #[clap(about = "Show the IDs of all courses in the library")]
     Courses,
@@ -218,7 +237,7 @@ pub(crate) enum ListSubcommands {
 }
 
 /// Contains subcommands used for displaying course and lesson materials.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum MaterialSubcommands {
     #[clap(about = "Show the material for the given course \
         (or the current course if none is passed)")]
@@ -238,7 +257,7 @@ pub(crate) enum MaterialSubcommands {
 }
 
 /// Contains subcommands used for manipulating the review list.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum ReviewListSubcommands {
     #[clap(about = "Add the given unit to the review list")]
     Add {
@@ -257,7 +276,7 @@ pub(crate) enum ReviewListSubcommands {
 }
 
 /// Contains the available subcommands.
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum Subcommands {
     #[clap(about = "Show the answer to the current exercise, if it exists")]
     Answer,
@@ -349,36 +368,36 @@ pub(crate) struct TraneCli {
 impl TraneCli {
     /// Executes the parsed subcommand.
     pub fn execute_subcommand(&self, app: &mut TraneApp) -> Result<()> {
-        match &self.commands {
+        match self.commands.clone() {
             Subcommands::Answer => app.show_answer(),
 
             Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
-                app.blacklist_unit(unit_id)?;
-                println!("Added unit {unit_id} to the blacklist");
+                app.blacklist_unit(&unit_id)?;
+                println!("Added unit {unit_id} to the blacklist.");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Course) => {
                 app.blacklist_course()?;
-                println!("Added current exercise's course to the blacklist");
+                println!("Added current exercise's course to the blacklist.");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Exercise) => {
                 app.blacklist_exercise()?;
-                println!("Added current exercise to the blacklist");
+                println!("Added current exercise to the blacklist.");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Lesson) => {
                 app.blacklist_lesson()?;
-                println!("Added current exercise's lesson to the blacklist");
+                println!("Added current exercise's lesson to the blacklist.");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
-                app.whitelist(unit_id)?;
-                println!("Removed {unit_id} from the blacklist");
+                app.whitelist(&unit_id)?;
+                println!("Removed {unit_id} from the blacklist.");
                 Ok(())
             }
 
@@ -387,34 +406,42 @@ impl TraneCli {
             Subcommands::Current => app.current(),
 
             Subcommands::Debug(DebugSubcommands::ExportGraph { path }) => {
-                app.export_graph(Path::new(path))?;
-                println!("Exported graph to {path}");
+                app.export_graph(Path::new(&path))?;
+                println!("Exported graph to {path}.");
                 Ok(())
             }
 
             Subcommands::Debug(DebugSubcommands::TrimScores { num_trials }) => {
-                app.trim_scores(*num_trials)
+                app.trim_scores(num_trials)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
-                app.show_unit_info(unit_id)
+                app.show_unit_info(&unit_id)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
-                let unit_type = app.get_unit_type(unit_id)?;
-                println!("The type of the unit with ID {unit_id} is {unit_type:?}");
+                let unit_type = app.get_unit_type(&unit_id)?;
+                println!("The type of the unit with ID {unit_id} is {unit_type:?}.");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::Clear) => {
                 app.clear_filter();
-                println!("Cleared the unit filter");
+                println!("Cleared the unit filter.");
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::Course { ids }) => app.filter_course(&ids[..]),
+            Subcommands::Filter(FilterSubcommands::Courses { ids }) => {
+                app.filter_courses(ids)?;
+                println!("Set the unit filter to only show exercises from the given courses.");
+                Ok(())
+            }
 
-            Subcommands::Filter(FilterSubcommands::Lesson { ids }) => app.filter_lesson(ids),
+            Subcommands::Filter(FilterSubcommands::Lessons { ids }) => {
+                app.filter_lessons(ids)?;
+                println!("Set the unit filter to only show exercises from the given lessons.");
+                Ok(())
+            }
 
             Subcommands::Filter(FilterSubcommands::List) => app.list_filters(),
 
@@ -429,20 +456,38 @@ impl TraneCli {
                     (true, _) => FilterOp::Any,
                     (_, true) => FilterOp::All,
                 };
-                app.filter_metadata(filter_op, lesson_metadata, course_metadata)?;
-                println!("Set the unit filter to only show exercises with the given metadata");
+                app.filter_metadata(filter_op, &lesson_metadata, &course_metadata)?;
+                println!("Set the unit filter to only show exercises with the given metadata.");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::ReviewList) => {
                 app.filter_review_list()?;
-                println!("Set the unit filter to only show exercises in the review list");
+                println!("Set the unit filter to only show exercises in the review list.");
+                Ok(())
+            }
+
+            Subcommands::Filter(FilterSubcommands::Dependencies { ids, depth }) => {
+                app.filter_dependencies(ids, depth)?;
+                println!(
+                    "Set the unit filter to only show exercises starting from the depedents of \
+                    the given units."
+                );
+                Ok(())
+            }
+
+            Subcommands::Filter(FilterSubcommands::Dependents { ids }) => {
+                app.filter_dependents(ids)?;
+                println!(
+                    "Set the unit filter to only show exercises from the given units and their \
+                    dependencies"
+                );
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::Set { id }) => {
-                app.set_filter(id)?;
-                println!("Set the unit filter to the saved filter with ID {id}");
+                app.set_filter(&id)?;
+                println!("Set the unit filter to the saved filter with ID {id}.");
                 Ok(())
             }
 
@@ -452,81 +497,81 @@ impl TraneCli {
             }
 
             Subcommands::Instructions(InstructionSubcommands::Course { course_id }) => {
-                app.show_course_instructions(course_id)
+                app.show_course_instructions(&course_id)
             }
 
             Subcommands::Instructions(InstructionSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_instructions(lesson_id)
+                app.show_lesson_instructions(&lesson_id)
             }
 
             Subcommands::List(ListSubcommands::Courses) => app.list_courses(),
 
             Subcommands::List(ListSubcommands::Dependencies { unit_id }) => {
-                app.list_dependencies(unit_id)
+                app.list_dependencies(&unit_id)
             }
 
             Subcommands::List(ListSubcommands::Dependents { unit_id }) => {
-                app.list_dependents(unit_id)
+                app.list_dependents(&unit_id)
             }
 
             Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
-                app.list_exercises(lesson_id)
+                app.list_exercises(&lesson_id)
             }
 
             Subcommands::List(ListSubcommands::Lessons { course_id }) => {
-                app.list_lessons(course_id)
+                app.list_lessons(&course_id)
             }
 
             Subcommands::List(ListSubcommands::MatchingCourses) => app.list_matching_courses(),
 
             Subcommands::List(ListSubcommands::MatchingLessons { course_id }) => {
-                app.list_matching_lessons(course_id)
+                app.list_matching_lessons(&course_id)
             }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
-                app.show_course_material(course_id)
+                app.show_course_material(&course_id)
             }
 
             Subcommands::MantraCount => app.show_mantra_count(),
 
             Subcommands::Material(MaterialSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_material(lesson_id)
+                app.show_lesson_material(&lesson_id)
             }
 
             Subcommands::Next => app.next(),
 
             Subcommands::Open { library_path } => {
-                app.open_library(library_path)?;
-                println!("Successfully opened course library at {library_path}");
+                app.open_library(&library_path)?;
+                println!("Successfully opened course library at {library_path}.");
                 Ok(())
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Add { unit_id }) => {
-                app.add_to_review_list(unit_id)?;
-                println!("Added unit {unit_id} to the review list");
+                app.add_to_review_list(&unit_id)?;
+                println!("Added unit {unit_id} to the review list.");
                 Ok(())
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
-                app.remove_from_review_list(unit_id)?;
-                println!("Removed unit {unit_id} from the review list");
+                app.remove_from_review_list(&unit_id)?;
+                println!("Removed unit {unit_id} from the review list.");
                 Ok(())
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Show) => app.show_review_list(),
 
-            Subcommands::Search { terms } => app.search(terms),
+            Subcommands::Search { terms } => app.search(&terms),
 
             Subcommands::Score { score } => {
-                app.record_score(*score)?;
-                println!("Recorded mastery score {score} for current exercise");
+                app.record_score(score)?;
+                println!("Recorded mastery score {score} for current exercise.");
                 Ok(())
             }
 
             Subcommands::Scores {
                 exercise_id,
                 num_scores,
-            } => app.show_scores(exercise_id, *num_scores),
+            } => app.show_scores(&exercise_id, num_scores),
         }
     }
 }

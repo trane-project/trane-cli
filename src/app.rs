@@ -268,55 +268,35 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Sets the filter to only show exercises from the given course.
-    pub fn filter_course(&mut self, course_ids: &[Ustr]) -> Result<()> {
+    /// Sets the filter to only show exercises from the given courses.
+    pub fn filter_courses(&mut self, course_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        for course_id in course_ids {
+        for course_id in &course_ids {
             let unit_type = self.get_unit_type(course_id)?;
             if unit_type != UnitType::Course {
                 bail!("Unit with ID {} is not a course", course_id);
             }
         }
 
-        self.filter = Some(UnitFilter::CourseFilter {
-            course_ids: course_ids.to_vec(),
-        });
+        self.filter = Some(UnitFilter::CourseFilter { course_ids });
         self.reset_batch();
-
-        println!(
-            "Set the unit filter to only show exercises from the courses with the following IDs:"
-        );
-        println!();
-        for course_id in course_ids {
-            println!("  - {course_id}");
-        }
         Ok(())
     }
 
-    /// Sets the filter to only show exercises from the given lesson.
-    pub fn filter_lesson(&mut self, lesson_ids: &[Ustr]) -> Result<()> {
+    /// Sets the filter to only show exercises from the given lessons.
+    pub fn filter_lessons(&mut self, lesson_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        for lesson_id in lesson_ids {
+        for lesson_id in &lesson_ids {
             let unit_type = self.get_unit_type(lesson_id)?;
             if unit_type != UnitType::Lesson {
                 bail!("Unit with ID {} is not a lesson", lesson_id);
             }
         }
 
-        self.filter = Some(UnitFilter::LessonFilter {
-            lesson_ids: lesson_ids.to_vec(),
-        });
+        self.filter = Some(UnitFilter::LessonFilter { lesson_ids });
         self.reset_batch();
-
-        println!(
-            "Set the unit filter to only show exercises from the lessons with the following IDs:"
-        );
-        println!();
-        for lesson_id in lesson_ids {
-            println!("  - {lesson_id}");
-        }
         Ok(())
     }
 
@@ -376,6 +356,25 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         self.filter = Some(UnitFilter::ReviewListFilter);
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Sets the filter to only show exercises starting from the dependencies of the given units at
+    /// the given depth.
+    pub fn filter_dependencies(&mut self, unit_ids: Vec<Ustr>, depth: usize) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        self.filter = Some(UnitFilter::Dependencies { unit_ids, depth });
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Sets the filter to only show exercises from the given units and their dependents.
+    pub fn filter_dependents(&mut self, unit_ids: Vec<Ustr>) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        self.filter = Some(UnitFilter::Dependents { unit_ids });
         self.reset_batch();
         Ok(())
     }
@@ -544,7 +543,17 @@ impl TraneApp {
                         UnitFilter::MetadataFilter { filter } => {
                             UnitFilter::course_passes_metadata_filter(filter, &manifest)
                         }
-                        UnitFilter::ReviewListFilter => false,
+                        UnitFilter::Dependents { unit_ids } => unit_ids.contains(course_id),
+                        UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
+                        UnitFilter::ReviewListFilter => {
+                            if let Ok(review_units) =
+                                self.trane.as_ref().unwrap().all_review_list_entries()
+                            {
+                                review_units.contains(course_id)
+                            } else {
+                                false
+                            }
+                        }
                     },
                     None => false,
                 }
@@ -604,7 +613,17 @@ impl TraneApp {
                                 &lesson_manifest,
                             )
                         }
-                        UnitFilter::ReviewListFilter => false,
+                        UnitFilter::ReviewListFilter => {
+                            if let Ok(review_units) =
+                                self.trane.as_ref().unwrap().all_review_list_entries()
+                            {
+                                review_units.contains(lesson_id)
+                            } else {
+                                false
+                            }
+                        }
+                        UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(lesson_id),
+                        UnitFilter::Dependents { unit_ids } => unit_ids.contains(lesson_id),
                     },
                     None => false,
                 }
