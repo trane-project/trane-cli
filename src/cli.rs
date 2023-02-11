@@ -100,13 +100,13 @@ pub(crate) enum FilterSubcommands {
     Clear,
 
     #[clap(about = "Set the unit filter to only show exercises from the given courses")]
-    Course {
+    Courses {
         #[clap(help = "The IDs of the courses")]
         ids: Vec<Ustr>,
     },
 
     #[clap(about = "Set the unit filter to only show exercises from the given lessons")]
-    Lesson {
+    Lessons {
         #[clap(help = "The IDs of the lessons")]
         ids: Vec<Ustr>,
     },
@@ -431,9 +431,17 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Filter(FilterSubcommands::Course { ids }) => app.filter_course(ids),
+            Subcommands::Filter(FilterSubcommands::Courses { ids }) => {
+                app.filter_courses(ids)?;
+                println!("Set the unit filter to only show exercises from the given courses.");
+                Ok(())
+            }
 
-            Subcommands::Filter(FilterSubcommands::Lesson { ids }) => app.filter_lesson(ids),
+            Subcommands::Filter(FilterSubcommands::Lessons { ids }) => {
+                app.filter_lessons(ids)?;
+                println!("Set the unit filter to only show exercises from the given lessons.");
+                Ok(())
+            }
 
             Subcommands::Filter(FilterSubcommands::List) => app.list_filters(),
 
@@ -462,7 +470,7 @@ impl TraneCli {
             Subcommands::Filter(FilterSubcommands::Dependencies { ids, depth }) => {
                 app.filter_dependencies(ids, depth)?;
                 println!(
-                    "Set the unit filter to only show exercises starting from the depedents of 
+                    "Set the unit filter to only show exercises starting from the depedents of \
                     the given units."
                 );
                 Ok(())
@@ -471,7 +479,7 @@ impl TraneCli {
             Subcommands::Filter(FilterSubcommands::Dependents { ids }) => {
                 app.filter_dependents(ids)?;
                 println!(
-                    "Set the unit filter to only show exercises from the given units and their 
+                    "Set the unit filter to only show exercises from the given units and their \
                     dependencies"
                 );
                 Ok(())

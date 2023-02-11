@@ -268,8 +268,8 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Sets the filter to only show exercises from the given course.
-    pub fn filter_course(&mut self, course_ids: Vec<Ustr>) -> Result<()> {
+    /// Sets the filter to only show exercises from the given courses.
+    pub fn filter_courses(&mut self, course_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         for course_id in &course_ids {
@@ -284,8 +284,8 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Sets the filter to only show exercises from the given lesson.
-    pub fn filter_lesson(&mut self, lesson_ids: Vec<Ustr>) -> Result<()> {
+    /// Sets the filter to only show exercises from the given lessons.
+    pub fn filter_lessons(&mut self, lesson_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         for lesson_id in &lesson_ids {
