@@ -14,6 +14,7 @@ use app::TraneApp;
 use clap::Parser;
 use helper::MyHelper;
 use rustyline::error::ReadlineError;
+use rustyline::history::FileHistory;
 use rustyline::{ColorMode, Config, Editor};
 
 use crate::cli::TraneCli;
@@ -24,13 +25,12 @@ fn main() -> Result<()> {
 
     let config = Config::builder()
         .auto_add_history(true)
-        .max_history_size(2500)
+        .max_history_size(2500)?
         .color_mode(ColorMode::Enabled)
         .history_ignore_space(true)
         .build();
 
-    let mut rl = Editor::<MyHelper>::with_config(config)?;
-
+    let mut rl = Editor::<MyHelper, FileHistory>::with_config(config)?;
     let helper = MyHelper::new();
     rl.set_helper(Some(helper));
 
