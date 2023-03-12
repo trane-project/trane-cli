@@ -946,7 +946,7 @@ impl TraneApp {
         self.reset_batch();
         Ok(())
     }
-    
+
     /// Adds a new repository to the Trane instance.
     pub fn add_repo(&mut self, url: &str, repo_id: Option<String>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -965,12 +965,12 @@ impl TraneApp {
     pub fn list_repos(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         let repos = self.trane.as_ref().unwrap().list_repos()?;
-        if repos.len() == 0 {
+        if repos.is_empty() {
             println!("No repositories are managed by Trane");
             return Ok(());
         }
-        
-        println!("{:<20} {}", "ID", "URL");
+
+        println!("{:<20} URL", "ID");
         for repo in repos {
             println!("{:<20} {}", repo.id, repo.url);
         }
