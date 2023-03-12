@@ -256,6 +256,37 @@ pub(crate) enum MaterialSubcommands {
     },
 }
 
+/// Contains subcommands used for manipulating git repositories containing Trane courses.
+#[derive(Clone, Debug, Subcommand)]
+pub(crate) enum RepositorySubcommands {
+    #[clap(about = "Add a new git repository to the library")]
+    Add {
+        #[clap(help = "The URL of the git repository")]
+        url: String,
+
+        #[clap(help = "The id to assign to the repository")]
+        repo_id: Option<String>,
+    },
+
+    #[clap(about = "Remove the git repository with the given id from the library")]
+    Remove {
+        #[clap(help = "The id of the repository")]
+        repo_id: String,
+    },
+
+    #[clap(about = "List the managed git repositories in the library")]
+    List,
+
+    #[clap(about = "Update the managed git repository with the given id")]
+    Update {
+        #[clap(help = "The id of the repository")]
+        repo_id: String,
+    },
+
+    #[clap(about = "Update all the managed git repositories in the library")]
+    UpdateAll,
+}
+
 /// Contains subcommands used for manipulating the review list.
 #[derive(Clone, Debug, Subcommand)]
 pub(crate) enum ReviewListSubcommands {
@@ -328,6 +359,10 @@ pub(crate) enum Subcommands {
         library_path: String,
     },
 
+    #[clap(about = "Subcommands for manipulating git repositories containing Trane courses")]
+    #[clap(subcommand)]
+    Repository(RepositorySubcommands),
+
     #[clap(about = "Subcommands for manipulating the review list")]
     #[clap(subcommand)]
     ReviewList(ReviewListSubcommands),
@@ -373,31 +408,31 @@ impl TraneCli {
 
             Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
                 app.blacklist_unit(&unit_id)?;
-                println!("Added unit {unit_id} to the blacklist.");
+                println!("Added unit {unit_id} to the blacklist");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Course) => {
                 app.blacklist_course()?;
-                println!("Added current exercise's course to the blacklist.");
+                println!("Added current exercise's course to the blacklist");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Exercise) => {
                 app.blacklist_exercise()?;
-                println!("Added current exercise to the blacklist.");
+                println!("Added current exercise to the blacklist");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Lesson) => {
                 app.blacklist_lesson()?;
-                println!("Added current exercise's lesson to the blacklist.");
+                println!("Added current exercise's lesson to the blacklist");
                 Ok(())
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
                 app.whitelist(&unit_id)?;
-                println!("Removed {unit_id} from the blacklist.");
+                println!("Removed {unit_id} from the blacklist");
                 Ok(())
             }
 
@@ -407,7 +442,7 @@ impl TraneCli {
 
             Subcommands::Debug(DebugSubcommands::ExportGraph { path }) => {
                 app.export_graph(Path::new(&path))?;
-                println!("Exported graph to {path}.");
+                println!("Exported graph to {path}");
                 Ok(())
             }
 
@@ -421,25 +456,25 @@ impl TraneCli {
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
                 let unit_type = app.get_unit_type(&unit_id)?;
-                println!("The type of the unit with ID {unit_id} is {unit_type:?}.");
+                println!("The type of the unit with ID {unit_id} is {unit_type:?}");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::Clear) => {
                 app.clear_filter();
-                println!("Cleared the unit filter.");
+                println!("Cleared the unit filter");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::Courses { ids }) => {
                 app.filter_courses(ids)?;
-                println!("Set the unit filter to only show exercises from the given courses.");
+                println!("Set the unit filter to only show exercises from the given courses");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::Lessons { ids }) => {
                 app.filter_lessons(ids)?;
-                println!("Set the unit filter to only show exercises from the given lessons.");
+                println!("Set the unit filter to only show exercises from the given lessons");
                 Ok(())
             }
 
@@ -457,13 +492,13 @@ impl TraneCli {
                     (_, true) => FilterOp::All,
                 };
                 app.filter_metadata(filter_op, &lesson_metadata, &course_metadata)?;
-                println!("Set the unit filter to only show exercises with the given metadata.");
+                println!("Set the unit filter to only show exercises with the given metadata");
                 Ok(())
             }
 
             Subcommands::Filter(FilterSubcommands::ReviewList) => {
                 app.filter_review_list()?;
-                println!("Set the unit filter to only show exercises in the review list.");
+                println!("Set the unit filter to only show exercises in the review list");
                 Ok(())
             }
 
@@ -471,7 +506,7 @@ impl TraneCli {
                 app.filter_dependencies(ids, depth)?;
                 println!(
                     "Set the unit filter to only show exercises starting from the depedents of \
-                    the given units."
+                    the given units"
                 );
                 Ok(())
             }
@@ -487,7 +522,7 @@ impl TraneCli {
 
             Subcommands::Filter(FilterSubcommands::Set { id }) => {
                 app.set_filter(&id)?;
-                println!("Set the unit filter to the saved filter with ID {id}.");
+                println!("Set the unit filter to the saved filter with ID {id}");
                 Ok(())
             }
 
@@ -542,7 +577,33 @@ impl TraneCli {
 
             Subcommands::Open { library_path } => {
                 app.open_library(&library_path)?;
-                println!("Successfully opened course library at {library_path}.");
+                println!("Successfully opened course library at {library_path}");
+                Ok(())
+            }
+
+            Subcommands::Repository(RepositorySubcommands::Add { url, repo_id }) => {
+                app.add_repo(&url, repo_id)?;
+                println!("Added repository with {url} to the course library");
+                Ok(())
+            }
+
+            Subcommands::Repository(RepositorySubcommands::List) => app.list_repos(),
+
+            Subcommands::Repository(RepositorySubcommands::Remove { repo_id }) => {
+                app.remove_repo(&repo_id)?;
+                println!("Removed repository with ID {repo_id} from the course library.");
+                Ok(())
+            }
+
+            Subcommands::Repository(RepositorySubcommands::Update { repo_id }) => {
+                app.update_repo(&repo_id)?;
+                println!("Updated repository with ID {repo_id}.");
+                Ok(())
+            }
+
+            Subcommands::Repository(RepositorySubcommands::UpdateAll) => {
+                app.update_all_repos()?;
+                println!("Updated all managed repositories.");
                 Ok(())
             }
 

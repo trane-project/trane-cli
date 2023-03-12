@@ -59,7 +59,7 @@ fn main() -> Result<()> {
                 if line.starts_with('#') || line.eq("") {
                     continue;
                 };
-                let split: Vec<&str> = line.split(' ').into_iter().collect();
+                let split: Vec<&str> = line.split(' ').collect();
                 let mut args = if !split.is_empty() && split[0] == "trane" {
                     vec![]
                 } else {

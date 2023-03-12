@@ -14,6 +14,7 @@ use trane::{
     filter_manager::FilterManager,
     graph::UnitGraph,
     practice_stats::PracticeStats,
+    repository_manager::RepositoryManager,
     review_list::ReviewList,
     scheduler::ExerciseScheduler,
     scorer::{ExerciseScorer, SimpleScorer},
@@ -943,6 +944,50 @@ impl TraneApp {
             .unwrap()
             .remove_from_blacklist(unit_id)?;
         self.reset_batch();
+        Ok(())
+    }
+
+    /// Adds a new repository to the Trane instance.
+    pub fn add_repo(&mut self, url: &str, repo_id: Option<String>) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().add_repo(url, repo_id)?;
+        Ok(())
+    }
+
+    /// Removes the given repository from the Trane instance.
+    pub fn remove_repo(&mut self, repo_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().remove_repo(repo_id)?;
+        Ok(())
+    }
+
+    /// Lists all the repositories managed by the Trane instance.
+    pub fn list_repos(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        let repos = self.trane.as_ref().unwrap().list_repos()?;
+        if repos.is_empty() {
+            println!("No repositories are managed by Trane");
+            return Ok(());
+        }
+
+        println!("{:<20} URL", "ID");
+        for repo in repos {
+            println!("{:<20} {}", repo.id, repo.url);
+        }
+        Ok(())
+    }
+
+    /// Updates the given repository.
+    pub fn update_repo(&mut self, repo_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().update_repo(repo_id)?;
+        Ok(())
+    }
+
+    /// Updates all the repositories managed by the Trane instance.
+    pub fn update_all_repos(&mut self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().update_all_repos()?;
         Ok(())
     }
 
