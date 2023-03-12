@@ -54,14 +54,14 @@ pub(crate) enum BlacklistSubcommands {
     #[clap(about = "Add the current exercise's lesson to the blacklist")]
     Lesson,
 
+    #[clap(about = "List the units currently in the blacklist")]
+    List,
+
     #[clap(about = "Remove unit from the blacklist")]
     Remove {
         #[clap(help = "The unit to remove from the blacklist")]
         unit_id: Ustr,
     },
-
-    #[clap(about = "Show the units currently in the blacklist")]
-    Show,
 }
 
 /// Contains subcommands used for debugging.
@@ -296,14 +296,14 @@ pub(crate) enum ReviewListSubcommands {
         unit_id: Ustr,
     },
 
+    #[clap(about = "List all the units in the review list")]
+    List,
+
     #[clap(about = "Remove the given unit from the review list")]
     Remove {
         #[clap(help = "The ID of the unit")]
         unit_id: Ustr,
     },
-
-    #[clap(about = "Show all the units in the review list")]
-    Show,
 }
 
 /// Contains the available subcommands.
@@ -436,7 +436,7 @@ impl TraneCli {
                 Ok(())
             }
 
-            Subcommands::Blacklist(BlacklistSubcommands::Show) => app.show_blacklist(),
+            Subcommands::Blacklist(BlacklistSubcommands::List) => app.list_blacklist(),
 
             Subcommands::Current => app.current(),
 
@@ -613,13 +613,13 @@ impl TraneCli {
                 Ok(())
             }
 
+            Subcommands::ReviewList(ReviewListSubcommands::List) => app.list_review_list(),
+
             Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
                 app.remove_from_review_list(&unit_id)?;
                 println!("Removed unit {unit_id} from the review list.");
                 Ok(())
             }
-
-            Subcommands::ReviewList(ReviewListSubcommands::Show) => app.show_review_list(),
 
             Subcommands::Search { terms } => app.search(&terms),
 

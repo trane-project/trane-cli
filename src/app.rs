@@ -714,8 +714,8 @@ impl TraneApp {
         curr_exercise.1.display_answer()
     }
 
-    /// Shows all the entries in the blacklist.
-    pub fn show_blacklist(&self) -> Result<()> {
+    /// Lists all the entries in the blacklist.
+    pub fn list_blacklist(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let trane = self.trane.as_ref().unwrap();
@@ -1017,8 +1017,8 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Shows all the units in the review list.
-    pub fn show_review_list(&self) -> Result<()> {
+    /// Lists all the units in the review list.
+    pub fn list_review_list(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let entries = self.trane.as_ref().unwrap().all_review_list_entries()?;
