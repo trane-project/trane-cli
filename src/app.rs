@@ -61,7 +61,7 @@ impl TraneApp {
         formatdoc! {r#"
                 Trane - An automated practice system for learning complex skills
                 
-                Copyright (C) {} The Trane Project
+                Copyright (C) 2022 - {} The Trane Project
 
                 This program is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
