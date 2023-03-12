@@ -76,13 +76,13 @@ impl TraneApp {
                 You should have received a copy of the GNU General Public License
                 along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 
-                Trane is named after John Coltrane and dedicated to his memory. The liner
-                notes for "A Love Supreme" are reproduced below. May this project be too
-                such an offering.
+                Trane is named after John Coltrane and dedicated to his memory. The
+                liner notes for "A Love Supreme" are reproduced below. May this project
+                be too such an offering.
                 
-                > This album is a humble offering to Him. An attempt to say "THANK YOU GOD"
-                > through our work, even as we do in our hearts and with our tongues. May
-                > He help and strengthen all men in every good endeavor.
+                > This album is a humble offering to Him. An attempt to say "THANK
+                > YOU GOD" through our work, even as we do in our hearts and with our
+                > tongues. May He help and strengthen all men in every good endeavor.
                 
                 Trane Version: {}
                 CLI Version: {}
