@@ -359,6 +359,9 @@ pub(crate) enum Subcommands {
         library_path: String,
     },
 
+    #[clap(about = "Quit Trane")]
+    Quit,
+
     #[clap(about = "Subcommands for manipulating git repositories containing Trane courses")]
     #[clap(subcommand)]
     Repository(RepositorySubcommands),
@@ -401,84 +404,98 @@ pub(crate) struct TraneCli {
 }
 
 impl TraneCli {
-    /// Executes the parsed subcommand.
-    pub fn execute_subcommand(&self, app: &mut TraneApp) -> Result<()> {
+    /// Executes the parsed subcommand. Returns true if the application should continue running.
+    pub fn execute_subcommand(&self, app: &mut TraneApp) -> Result<bool> {
         match self.commands.clone() {
-            Subcommands::Answer => app.show_answer(),
+            Subcommands::Answer => {
+                app.show_answer()?;
+                Ok(true)
+            }
 
             Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
                 app.blacklist_unit(&unit_id)?;
                 println!("Added unit {unit_id} to the blacklist");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Course) => {
                 app.blacklist_course()?;
                 println!("Added current exercise's course to the blacklist");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Exercise) => {
                 app.blacklist_exercise()?;
                 println!("Added current exercise to the blacklist");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Lesson) => {
                 app.blacklist_lesson()?;
                 println!("Added current exercise's lesson to the blacklist");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
                 app.whitelist(&unit_id)?;
                 println!("Removed {unit_id} from the blacklist");
-                Ok(())
+                Ok(true)
             }
 
-            Subcommands::Blacklist(BlacklistSubcommands::List) => app.list_blacklist(),
+            Subcommands::Blacklist(BlacklistSubcommands::List) => {
+                app.list_blacklist()?;
+                Ok(true)
+            }
 
-            Subcommands::Current => app.current(),
+            Subcommands::Current => {
+                app.current()?;
+                Ok(true)
+            }
 
             Subcommands::Debug(DebugSubcommands::ExportGraph { path }) => {
                 app.export_graph(Path::new(&path))?;
                 println!("Exported graph to {path}");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Debug(DebugSubcommands::TrimScores { num_trials }) => {
-                app.trim_scores(num_trials)
+                app.trim_scores(num_trials)?;
+                Ok(true)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
-                app.show_unit_info(&unit_id)
+                app.show_unit_info(&unit_id)?;
+                Ok(true)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
                 let unit_type = app.get_unit_type(&unit_id)?;
                 println!("The type of the unit with ID {unit_id} is {unit_type:?}");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Clear) => {
                 app.clear_filter();
                 println!("Cleared the unit filter");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Courses { ids }) => {
                 app.filter_courses(ids)?;
                 println!("Set the unit filter to only show exercises from the given courses");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Lessons { ids }) => {
                 app.filter_lessons(ids)?;
                 println!("Set the unit filter to only show exercises from the given lessons");
-                Ok(())
+                Ok(true)
             }
 
-            Subcommands::Filter(FilterSubcommands::List) => app.list_filters(),
+            Subcommands::Filter(FilterSubcommands::List) => {
+                app.list_filters()?;
+                Ok(true)
+            }
 
             Subcommands::Filter(FilterSubcommands::Metadata {
                 all,
@@ -493,13 +510,13 @@ impl TraneCli {
                 };
                 app.filter_metadata(filter_op, &lesson_metadata, &course_metadata)?;
                 println!("Set the unit filter to only show exercises with the given metadata");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::ReviewList) => {
                 app.filter_review_list()?;
                 println!("Set the unit filter to only show exercises in the review list");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Dependencies { ids, depth }) => {
@@ -508,7 +525,7 @@ impl TraneCli {
                     "Set the unit filter to only show exercises starting from the depedents of \
                     the given units"
                 );
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Dependents { ids }) => {
@@ -517,122 +534,157 @@ impl TraneCli {
                     "Set the unit filter to only show exercises from the given units and their \
                     dependencies"
                 );
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Set { id }) => {
                 app.set_filter(&id)?;
                 println!("Set the unit filter to the saved filter with ID {id}");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Show) => {
                 app.show_filter();
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Instructions(InstructionSubcommands::Course { course_id }) => {
-                app.show_course_instructions(&course_id)
+                app.show_course_instructions(&course_id)?;
+                Ok(true)
             }
 
             Subcommands::Instructions(InstructionSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_instructions(&lesson_id)
+                app.show_lesson_instructions(&lesson_id)?;
+                Ok(true)
             }
 
-            Subcommands::List(ListSubcommands::Courses) => app.list_courses(),
+            Subcommands::List(ListSubcommands::Courses) => {
+                app.list_courses()?;
+                Ok(true)
+            }
 
             Subcommands::List(ListSubcommands::Dependencies { unit_id }) => {
-                app.list_dependencies(&unit_id)
+                app.list_dependencies(&unit_id)?;
+                Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Dependents { unit_id }) => {
-                app.list_dependents(&unit_id)
+                app.list_dependents(&unit_id)?;
+                Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
-                app.list_exercises(&lesson_id)
+                app.list_exercises(&lesson_id)?;
+                Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Lessons { course_id }) => {
-                app.list_lessons(&course_id)
+                app.list_lessons(&course_id)?;
+                Ok(true)
             }
 
-            Subcommands::List(ListSubcommands::MatchingCourses) => app.list_matching_courses(),
+            Subcommands::List(ListSubcommands::MatchingCourses) => {
+                app.list_matching_courses()?;
+                Ok(true)
+            }
 
             Subcommands::List(ListSubcommands::MatchingLessons { course_id }) => {
-                app.list_matching_lessons(&course_id)
+                app.list_matching_lessons(&course_id)?;
+                Ok(true)
             }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
-                app.show_course_material(&course_id)
+                app.show_course_material(&course_id)?;
+                Ok(true)
             }
 
-            Subcommands::MantraCount => app.show_mantra_count(),
+            Subcommands::MantraCount => {
+                app.show_mantra_count()?;
+                Ok(true)
+            }
 
             Subcommands::Material(MaterialSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_material(&lesson_id)
+                app.show_lesson_material(&lesson_id)?;
+                Ok(true)
             }
 
-            Subcommands::Next => app.next(),
+            Subcommands::Next => {
+                app.next()?;
+                Ok(true)
+            }
 
             Subcommands::Open { library_path } => {
                 app.open_library(&library_path)?;
                 println!("Successfully opened course library at {library_path}");
-                Ok(())
+                Ok(true)
             }
+
+            Subcommands::Quit => Ok(false),
 
             Subcommands::Repository(RepositorySubcommands::Add { url, repo_id }) => {
                 app.add_repo(&url, repo_id)?;
                 println!("Added repository with {url} to the course library");
-                Ok(())
+                Ok(true)
             }
 
-            Subcommands::Repository(RepositorySubcommands::List) => app.list_repos(),
+            Subcommands::Repository(RepositorySubcommands::List) => {
+                app.list_repos()?;
+                Ok(true)
+            }
 
             Subcommands::Repository(RepositorySubcommands::Remove { repo_id }) => {
                 app.remove_repo(&repo_id)?;
                 println!("Removed repository with ID {repo_id} from the course library.");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Repository(RepositorySubcommands::Update { repo_id }) => {
                 app.update_repo(&repo_id)?;
                 println!("Updated repository with ID {repo_id}.");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Repository(RepositorySubcommands::UpdateAll) => {
                 app.update_all_repos()?;
                 println!("Updated all managed repositories.");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Add { unit_id }) => {
                 app.add_to_review_list(&unit_id)?;
                 println!("Added unit {unit_id} to the review list.");
-                Ok(())
+                Ok(true)
             }
 
-            Subcommands::ReviewList(ReviewListSubcommands::List) => app.list_review_list(),
+            Subcommands::ReviewList(ReviewListSubcommands::List) => {
+                app.list_review_list()?;
+                Ok(true)
+            }
 
             Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
                 app.remove_from_review_list(&unit_id)?;
                 println!("Removed unit {unit_id} from the review list.");
-                Ok(())
+                Ok(true)
             }
 
-            Subcommands::Search { terms } => app.search(&terms),
+            Subcommands::Search { terms } => {
+                app.search(&terms)?;
+                Ok(true)
+            }
 
             Subcommands::Score { score } => {
                 app.record_score(score)?;
                 println!("Recorded mastery score {score} for current exercise.");
-                Ok(())
+                Ok(true)
             }
 
             Subcommands::Scores {
                 exercise_id,
                 num_scores,
-            } => app.show_scores(&exercise_id, num_scores),
+            } => {
+                app.show_scores(&exercise_id, num_scores)?;
+                Ok(true)
+            }
         }
     }
 }

@@ -74,7 +74,10 @@ fn main() -> Result<()> {
                 }
 
                 match cli.unwrap().execute_subcommand(&mut app) {
-                    Ok(()) => (),
+                    Ok(continue_execution) => match continue_execution {
+                        true => continue,
+                        false => break,
+                    },
                     Err(err) => println!("Error: {err:#}"),
                 }
             }
