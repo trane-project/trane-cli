@@ -9,7 +9,7 @@ use trane::{
     course_library::CourseLibrary,
     data::{
         filter::{FilterOp, FilterType, KeyValueFilter, MetadataFilter, UnitFilter},
-        ExerciseManifest, MasteryScore, UnitType,
+        ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
     filter_manager::FilterManager,
     graph::UnitGraph,
@@ -1068,6 +1068,26 @@ impl TraneApp {
             let unit_type = self.get_unit_type(&unit_id)?;
             println!("{unit_type:<10} {unit_id:<50}");
         }
+        Ok(())
+    }
+
+    /// Resets the scheduler options to their default values.
+    pub fn reset_scheduler_options(&mut self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().reset_scheduler_options();
+        Ok(())
+    }
+
+    pub fn set_scheduler_options(&mut self, options: SchedulerOptions) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        self.trane.as_mut().unwrap().set_scheduler_options(options);
+        Ok(())
+    }
+
+    pub fn show_scheduler_options(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+        let options = self.trane.as_ref().unwrap().get_scheduler_options();
+        println!("{options:#?}");
         Ok(())
     }
 }

@@ -3,7 +3,7 @@
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 use std::{path::Path, str::FromStr};
-use trane::data::filter::FilterOp;
+use trane::data::{filter::FilterOp, SchedulerOptions};
 use ustr::Ustr;
 
 use crate::app::TraneApp;
@@ -306,6 +306,22 @@ pub(crate) enum ReviewListSubcommands {
     },
 }
 
+#[derive(Clone, Debug, Subcommand)]
+pub(crate) enum SchedulerOptionsSubcommands {
+    #[clap(about = "Reset the scheduler options to their default values")]
+    Reset,
+
+    #[clap(about = "Set the scheduler options to the given values")]
+    Set {
+        #[clap(help = "The new batch size")]
+        #[clap(long = "batch-size")]
+        batch_size: usize,
+    },
+
+    #[clap(about = "Show the current scheduler options")]
+    Show,
+}
+
 /// Contains the available subcommands.
 #[derive(Clone, Debug, Subcommand)]
 pub(crate) enum Subcommands {
@@ -392,6 +408,10 @@ pub(crate) enum Subcommands {
         #[clap(default_value = "20")]
         num_scores: usize,
     },
+
+    #[clap(about = "Subcommands for manipulating the exercise scheduler")]
+    #[clap(subcommand)]
+    SchedulerOptions(SchedulerOptionsSubcommands),
 }
 
 /// A command-line interface for Trane.
@@ -683,6 +703,27 @@ impl TraneCli {
                 num_scores,
             } => {
                 app.show_scores(&exercise_id, num_scores)?;
+                Ok(true)
+            }
+
+            Subcommands::SchedulerOptions(SchedulerOptionsSubcommands::Reset) => {
+                app.reset_scheduler_options()?;
+                println!("Reset the scheduler options to their default values");
+                Ok(true)
+            }
+
+            Subcommands::SchedulerOptions(SchedulerOptionsSubcommands::Set { batch_size }) => {
+                let options = SchedulerOptions {
+                    batch_size,
+                    ..Default::default()
+                };
+                app.set_scheduler_options(options)?;
+                println!("Set the batch size to {batch_size}");
+                Ok(true)
+            }
+
+            Subcommands::SchedulerOptions(SchedulerOptionsSubcommands::Show) => {
+                app.show_scheduler_options()?;
                 Ok(true)
             }
         }
