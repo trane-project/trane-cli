@@ -137,7 +137,7 @@ impl TraneApp {
     }
 
     /// Resets the batch of exercises.
-    fn reset_batch(&mut self) {
+    pub fn reset_batch(&mut self) {
         // Submit the score for the current exercise but ignore the error because this function
         // might be called before an instance of Trane is open.
         let _ = self.submit_current_score();
