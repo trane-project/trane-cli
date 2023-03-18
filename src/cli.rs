@@ -382,6 +382,9 @@ pub(crate) enum Subcommands {
     #[clap(subcommand)]
     Repository(RepositorySubcommands),
 
+    #[clap(about = "Resets the current exercise batch")]
+    ResetBatch,
+
     #[clap(about = "Subcommands for manipulating the review list")]
     #[clap(subcommand)]
     ReviewList(ReviewListSubcommands),
@@ -667,6 +670,12 @@ impl TraneCli {
             Subcommands::Repository(RepositorySubcommands::UpdateAll) => {
                 app.update_all_repos()?;
                 println!("Updated all managed repositories.");
+                Ok(true)
+            }
+
+            Subcommands::ResetBatch => {
+                app.reset_batch();
+                println!("The exercise batch has been reset.");
                 Ok(true)
             }
 
