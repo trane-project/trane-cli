@@ -8,7 +8,9 @@ use trane::{
     blacklist::Blacklist,
     course_library::CourseLibrary,
     data::{
-        filter::{FilterOp, FilterType, KeyValueFilter, MetadataFilter, UnitFilter},
+        filter::{
+            FilterOp, FilterType, KeyValueFilter, MetadataFilter, StudySessionData, UnitFilter,
+        },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
     filter_manager::FilterManager,
@@ -16,8 +18,9 @@ use trane::{
     practice_stats::PracticeStats,
     repository_manager::RepositoryManager,
     review_list::ReviewList,
-    scheduler::ExerciseScheduler,
+    scheduler::{ExerciseFilter, ExerciseScheduler},
     scorer::{ExerciseScorer, SimpleScorer},
+    study_session_manager::StudySessionManager,
     Trane,
 };
 use ustr::Ustr;
@@ -33,6 +36,9 @@ pub(crate) struct TraneApp {
 
     /// The filter used to select exercises.
     filter: Option<UnitFilter>,
+
+    /// The study session used to select exercises.
+    study_session: Option<StudySessionData>,
 
     /// The current batch of exercises.
     batch: Vec<(Ustr, ExerciseManifest)>,
@@ -211,6 +217,7 @@ impl TraneApp {
             return;
         }
         self.filter = None;
+        self.study_session = None;
         self.reset_batch();
     }
 
@@ -644,6 +651,17 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Returns the exercise filter to use, which is either a unit filter or a study session.
+    fn exercise_filter(&self) -> Option<ExerciseFilter> {
+        match self.filter {
+            None => self
+                .study_session
+                .as_ref()
+                .map(|study_session| ExerciseFilter::StudySession(study_session.clone())),
+            Some(ref filter) => Some(ExerciseFilter::UnitFilter(filter.clone())),
+        }
+    }
+
     /// Displays the next exercise.
     pub fn next(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -658,7 +676,7 @@ impl TraneApp {
                 .trane
                 .as_ref()
                 .unwrap()
-                .get_exercise_batch(self.filter.as_ref())?;
+                .get_exercise_batch(self.exercise_filter())?;
             self.batch_index = 0;
         }
 
@@ -691,17 +709,19 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Sets the unit filter to the saved filter with the given ID.
+    /// Sets the unit filter to the saved filter with the given ID. Setting a filter resets the
+    /// study session, as only one of the two can be active at a time.
     pub fn set_filter(&mut self, filter_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let named_filter = self
+        let saved_filter = self
             .trane
             .as_ref()
             .unwrap()
             .get_filter(filter_id)
             .ok_or_else(|| anyhow!("no filter with ID {}", filter_id))?;
-        self.filter = Some(named_filter.filter);
+        self.filter = Some(saved_filter.filter);
+        self.study_session = None;
         self.reset_batch();
         Ok(())
     }
@@ -1078,16 +1098,76 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Sets the scheduler options.
     pub fn set_scheduler_options(&mut self, options: SchedulerOptions) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         self.trane.as_mut().unwrap().set_scheduler_options(options);
         Ok(())
     }
 
+    /// Shows the current scheduler options.
     pub fn show_scheduler_options(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         let options = self.trane.as_ref().unwrap().get_scheduler_options();
         println!("{options:#?}");
         Ok(())
+    }
+
+    /// Clears the study session if it's set.
+    pub fn clear_study_session(&mut self) {
+        if self.filter.is_none() {
+            return;
+        }
+        self.filter = None;
+        self.study_session = None;
+        self.reset_batch();
+    }
+
+    /// Prints the list of all the saved unit filters.
+    pub fn list_study_sessions(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let sessions = self.trane.as_ref().unwrap().list_study_sessions();
+        if sessions.is_empty() {
+            println!("No saved study sessions");
+            return Ok(());
+        }
+
+        println!("Saved study sessions:");
+        println!("{:<30} {:<50}", "ID", "Description");
+        for filter in sessions {
+            println!("{:<30} {:<50}", filter.0, filter.1);
+        }
+        Ok(())
+    }
+
+    /// Sets the study session to the saved session with the given ID. Setting a study session
+    /// resets the filter, as only one of the two can be active at a time.
+    pub fn set_study_session(&mut self, session_id: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let saved_session = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_study_session(session_id)
+            .ok_or_else(|| anyhow!("no study session with ID {}", session_id))?;
+        self.filter = None;
+        self.study_session = Some(StudySessionData {
+            start_time: Utc::now(),
+            definition: saved_session,
+        });
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Shows the currently set study session.
+    pub fn show_study_session(&self) {
+        if self.filter.is_none() {
+            println!("No study session is set");
+        } else {
+            println!("Study session:");
+            println!("{:#?}", self.study_session.as_ref().unwrap());
+        }
     }
 }
