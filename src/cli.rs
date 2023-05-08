@@ -165,13 +165,13 @@ pub(crate) enum FilterSubcommands {
         depth: usize,
     },
 
-    #[clap(about = "Set the unit filter to the saved filter with the given ID")]
+    #[clap(about = "Select the saved filter with the given ID")]
     Set {
         #[clap(help = "The ID of the saved filter")]
         id: String,
     },
 
-    #[clap(about = "Shows the current unit filter")]
+    #[clap(about = "Shows the selected unit filter")]
     Show,
 }
 
@@ -322,6 +322,24 @@ pub(crate) enum SchedulerOptionsSubcommands {
     Show,
 }
 
+/// Contains subcommands used for setting and displaying study sessions.
+#[derive(Clone, Debug, Subcommand)]
+pub(crate) enum StudySessionSubcommands {
+    #[clap(about = "Clear the study session if any has been set")]
+    Clear,
+
+    #[clap(about = "List the saved study sessions")]
+    List,
+
+    #[clap(about = "Select the study session with the given ID")]
+    Set {
+        #[clap(help = "The ID of the saved study session")]
+        id: String,
+    },
+
+    #[clap(about = "Shows the selected study session")]
+    Show,
+}
 /// Contains the available subcommands.
 #[derive(Clone, Debug, Subcommand)]
 pub(crate) enum Subcommands {
@@ -415,6 +433,10 @@ pub(crate) enum Subcommands {
     #[clap(about = "Subcommands for manipulating the exercise scheduler")]
     #[clap(subcommand)]
     SchedulerOptions(SchedulerOptionsSubcommands),
+
+    #[clap(about = "Subcommands for setting and displaying study sessions")]
+    #[clap(subcommand)]
+    StudySession(StudySessionSubcommands),
 }
 
 /// A command-line interface for Trane.
@@ -733,6 +755,28 @@ impl TraneCli {
 
             Subcommands::SchedulerOptions(SchedulerOptionsSubcommands::Show) => {
                 app.show_scheduler_options()?;
+                Ok(true)
+            }
+
+            Subcommands::StudySession(StudySessionSubcommands::Clear) => {
+                app.clear_study_session();
+                println!("Cleared the saved study session");
+                Ok(true)
+            }
+
+            Subcommands::StudySession(StudySessionSubcommands::List) => {
+                app.list_study_sessions()?;
+                Ok(true)
+            }
+
+            Subcommands::StudySession(StudySessionSubcommands::Set { id }) => {
+                app.set_study_session(&id)?;
+                println!("Set the study session to the saved study session with ID {id}");
+                Ok(true)
+            }
+
+            Subcommands::StudySession(StudySessionSubcommands::Show) => {
+                app.show_study_session();
                 Ok(true)
             }
         }
