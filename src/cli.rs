@@ -62,6 +62,12 @@ pub(crate) enum BlacklistSubcommands {
         #[clap(help = "The unit to remove from the blacklist")]
         unit_id: Ustr,
     },
+
+    #[clap(about = "Removes all the units that match the given prefix from the blacklist")]
+    RemovePrefix {
+        #[clap(help = "The prefix to remove from the blacklist")]
+        prefix: String,
+    },
 }
 
 /// Contains subcommands used for debugging.
@@ -482,8 +488,14 @@ impl TraneCli {
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
-                app.whitelist(&unit_id)?;
+                app.remove_from_blacklist(&unit_id)?;
                 println!("Removed {unit_id} from the blacklist");
+                Ok(true)
+            }
+
+            Subcommands::Blacklist(BlacklistSubcommands::RemovePrefix { prefix }) => {
+                app.remove_prefix_from_blacklist(&prefix)?;
+                println!("Removed units matching prefix {prefix} from the blacklist");
                 Ok(true)
             }
 

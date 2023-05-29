@@ -956,13 +956,25 @@ impl TraneApp {
     }
 
     /// Removes the given unit from the blacklist.
-    pub fn whitelist(&mut self, unit_id: &Ustr) -> Result<()> {
+    pub fn remove_from_blacklist(&mut self, unit_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         self.trane
             .as_mut()
             .unwrap()
             .remove_from_blacklist(unit_id)?;
+        self.reset_batch();
+        Ok(())
+    }
+
+    /// Removes the given unit from the blacklist.
+    pub fn remove_prefix_from_blacklist(&mut self, prefix: &str) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        self.trane
+            .as_mut()
+            .unwrap()
+            .remove_prefix_from_blacklist(prefix)?;
         self.reset_batch();
         Ok(())
     }
