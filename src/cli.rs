@@ -426,7 +426,7 @@ pub(crate) enum Subcommands {
         exercise_id: Ustr,
 
         #[clap(help = "The number of scores to show")]
-        #[clap(default_value = "20")]
+        #[clap(short, long, default_value = "20")]
         num_scores: usize,
     },
 
