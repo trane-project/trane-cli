@@ -15,7 +15,7 @@ path = "src/simple_build.rs"
 
 [dependencies]
 anyhow = "1.0.69"
-built = { git = "https://github.com/martinmr/built.git", features = ["chrono", "git2", "semver"] }
+built = { version = "0.6.1", features = ["chrono", "git2", "semver"] }
 chrono = "0.4.23"
 clap = { version = "4.1.8", features = ["derive"] }
 indoc = "2.0.0"
@@ -29,4 +29,4 @@ ustr = { version = "0.9.0", features = ["serialization"] }
 # trane = { path = "../trane" }
 
 [build-dependencies]
-built = { git = "https://github.com/martinmr/built.git", features = ["chrono", "git2", "semver"] }
+built = { version = "0.6.1", features = ["chrono", "git2", "semver"] }
