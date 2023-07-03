@@ -499,7 +499,12 @@ impl TraneApp {
     pub fn list_exercises(&self, lesson_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let exercises = self.trane.as_ref().unwrap().get_exercise_ids(lesson_id)?;
+        let exercises = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_exercise_ids(lesson_id)
+            .unwrap_or_default();
         if exercises.is_empty() {
             println!("No exercises in lesson {lesson_id}");
             return Ok(());
@@ -515,7 +520,12 @@ impl TraneApp {
     pub fn list_lessons(&self, course_id: &Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let lessons = self.trane.as_ref().unwrap().get_lesson_ids(course_id)?;
+        let lessons = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_lesson_ids(course_id)
+            .unwrap_or_default();
         if lessons.is_empty() {
             println!("No lessons in course {course_id}");
             return Ok(());
@@ -555,7 +565,7 @@ impl TraneApp {
                         UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
-                                self.trane.as_ref().unwrap().all_review_list_entries()
+                                self.trane.as_ref().unwrap().get_review_list_entries()
                             {
                                 review_units.contains(course_id)
                             } else {
@@ -589,7 +599,8 @@ impl TraneApp {
             .trane
             .as_ref()
             .unwrap()
-            .get_lesson_ids(course_id)?
+            .get_lesson_ids(course_id)
+            .unwrap_or_default()
             .into_iter()
             .filter(|lesson_id| {
                 if self.filter.is_none() {
@@ -623,7 +634,7 @@ impl TraneApp {
                         }
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
-                                self.trane.as_ref().unwrap().all_review_list_entries()
+                                self.trane.as_ref().unwrap().get_review_list_entries()
                             {
                                 review_units.contains(lesson_id)
                             } else {
@@ -739,7 +750,7 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let trane = self.trane.as_ref().unwrap();
-        let entries = trane.all_blacklist_entries()?;
+        let entries = trane.get_blacklist_entries()?;
         if entries.is_empty() {
             println!("No entries in the blacklist");
             return Ok(());
@@ -996,7 +1007,7 @@ impl TraneApp {
     /// Lists all the repositories managed by the Trane instance.
     pub fn list_repos(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        let repos = self.trane.as_ref().unwrap().list_repos()?;
+        let repos = self.trane.as_ref().unwrap().list_repos();
         if repos.is_empty() {
             println!("No repositories are managed by Trane");
             return Ok(());
@@ -1053,7 +1064,7 @@ impl TraneApp {
     pub fn list_review_list(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let entries = self.trane.as_ref().unwrap().all_review_list_entries()?;
+        let entries = self.trane.as_ref().unwrap().get_review_list_entries()?;
         if entries.is_empty() {
             println!("No entries in the blacklist");
             return Ok(());

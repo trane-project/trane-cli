@@ -1619,9 +1619,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.97"
+version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdf3bf93142acad5821c99197022e170842cdbc1c30482b98750c688c640842a"
+checksum = "46266871c240a00b8f503b877622fe33430b3c7d963bdc0f2adc511e54a1eae3"
 dependencies = [
  "itoa",
  "ryu",
@@ -2120,9 +2120,9 @@ dependencies = [
 
 [[package]]
 name = "trane"
-version = "0.14.4"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70809955498c4621f7f9250cb75a53737d0720bb66fbb56bdb2b1c50fa8dcd2f"
+checksum = "b6260b954055610244e12caacab86d6faec5fbbd5d3f98dfffc94dfdc41248db"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2152,7 +2152,7 @@ dependencies = [
 
 [[package]]
 name = "trane-cli"
-version = "0.14.4"
+version = "0.15.0"
 dependencies = [
  "anyhow",
  "built",
