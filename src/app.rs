@@ -9,7 +9,8 @@ use trane::{
     course_library::CourseLibrary,
     data::{
         filter::{
-            FilterOp, FilterType, KeyValueFilter, MetadataFilter, StudySessionData, UnitFilter,
+            ExerciseFilter, FilterOp, FilterType, KeyValueFilter, MetadataFilter, StudySessionData,
+            UnitFilter,
         },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
@@ -18,7 +19,7 @@ use trane::{
     practice_stats::PracticeStats,
     repository_manager::RepositoryManager,
     review_list::ReviewList,
-    scheduler::{ExerciseFilter, ExerciseScheduler},
+    scheduler::ExerciseScheduler,
     scorer::{ExerciseScorer, SimpleScorer},
     study_session_manager::StudySessionManager,
     Trane,
