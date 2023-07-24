@@ -171,6 +171,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "time 0.1.45",
  "wasm-bindgen",
  "winapi",
@@ -2120,9 +2121,9 @@ dependencies = [
 
 [[package]]
 name = "trane"
-version = "0.15.0"
+version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6260b954055610244e12caacab86d6faec5fbbd5d3f98dfffc94dfdc41248db"
+checksum = "4d473f0f1c57955f6a799d8f1482b17e85e946a4f2f9bff65fbf4e8aa3b9d09d"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2145,6 +2146,7 @@ dependencies = [
  "tantivy",
  "tempfile",
  "thiserror",
+ "typeshare",
  "url",
  "ustr",
  "walkdir",
@@ -2165,6 +2167,28 @@ dependencies = [
  "termimad",
  "trane",
  "ustr",
+]
+
+[[package]]
+name = "typeshare"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f44d1a2f454cb35fbe05b218c410792697e76bd868f48d3a418f2cd1a7d527d6"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "typeshare-annotation",
+]
+
+[[package]]
+name = "typeshare-annotation"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc670d0e358428857cc3b4bf504c691e572fccaec9542ff09212d3f13d74b7a9"
+dependencies = [
+ "quote",
+ "syn 1.0.107",
 ]
 
 [[package]]
