@@ -9,8 +9,7 @@ use trane::{
     course_library::CourseLibrary,
     data::{
         filter::{
-            ExerciseFilter, FilterOp, FilterType, KeyValueFilter, MetadataFilter, StudySessionData,
-            UnitFilter,
+            ExerciseFilter, FilterOp, FilterType, KeyValueFilter, StudySessionData, UnitFilter,
         },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
@@ -317,43 +316,42 @@ impl TraneApp {
         lesson_metadata: &Option<Vec<KeyValue>>,
         course_metadata: &Option<Vec<KeyValue>>,
     ) -> Result<()> {
-        let basic_lesson_filters: Option<Vec<KeyValueFilter>> =
-            lesson_metadata.as_ref().map(|pairs| {
+        let basic_lesson_filters: Vec<_> = lesson_metadata
+            .as_ref()
+            .map(|pairs| {
                 pairs
                     .iter()
-                    .map(|pair| KeyValueFilter::BasicFilter {
+                    .map(|pair| KeyValueFilter::LessonFilter {
                         key: pair.key.clone(),
                         value: pair.value.clone(),
                         filter_type: FilterType::Include,
                     })
                     .collect()
-            });
-        let lesson_filter = basic_lesson_filters.map(|filters| KeyValueFilter::CombinedFilter {
-            op: filter_op.clone(),
-            filters,
-        });
+            })
+            .unwrap_or_default();
 
-        let basic_course_filters: Option<Vec<KeyValueFilter>> =
-            course_metadata.as_ref().map(|pairs| {
+        let basic_course_filters: Vec<_> = course_metadata
+            .as_ref()
+            .map(|pairs| {
                 pairs
                     .iter()
-                    .map(|pair| KeyValueFilter::BasicFilter {
+                    .map(|pair| KeyValueFilter::CourseFilter {
                         key: pair.key.clone(),
                         value: pair.value.clone(),
                         filter_type: FilterType::Include,
                     })
                     .collect()
-            });
-        let course_filter = basic_course_filters.map(|filters| KeyValueFilter::CombinedFilter {
-            op: filter_op.clone(),
-            filters,
-        });
+            })
+            .unwrap_or_default();
 
         self.filter = Some(UnitFilter::MetadataFilter {
-            filter: MetadataFilter {
+            filter: KeyValueFilter::CombinedFilter {
                 op: filter_op,
-                lesson_filter,
-                course_filter,
+                filters: basic_lesson_filters
+                    .iter()
+                    .chain(basic_course_filters.iter())
+                    .cloned()
+                    .collect(),
             },
         });
         self.reset_batch();
@@ -559,9 +557,7 @@ impl TraneApp {
                     Some(manifest) => match filter {
                         UnitFilter::CourseFilter { .. } => filter.passes_course_filter(course_id),
                         UnitFilter::LessonFilter { .. } => false,
-                        UnitFilter::MetadataFilter { filter } => {
-                            UnitFilter::course_passes_metadata_filter(filter, &manifest)
-                        }
+                        UnitFilter::MetadataFilter { filter } => filter.apply_to_course(&manifest),
                         UnitFilter::Dependents { unit_ids } => unit_ids.contains(course_id),
                         UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
                         UnitFilter::ReviewListFilter => {
@@ -627,11 +623,7 @@ impl TraneApp {
                                 return true;
                             }
                             let course_manifest = course_manifest.unwrap();
-                            UnitFilter::lesson_passes_metadata_filter(
-                                filter,
-                                &course_manifest,
-                                &lesson_manifest,
-                            )
+                            filter.apply_to_lesson(&course_manifest, &lesson_manifest)
                         }
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
