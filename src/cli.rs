@@ -539,7 +539,6 @@ impl TraneCli {
 
             Subcommands::Debug(DebugSubcommands::RemoveScoresPrefix { prefix }) => {
                 app.remove_prefix_from_scores(&prefix)?;
-                println!("Removed scores from units matching prefix {prefix}");
                 Ok(true)
             }
 
