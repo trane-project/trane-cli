@@ -97,6 +97,12 @@ pub(crate) enum DebugSubcommands {
         #[clap(help = "The ID of the unit")]
         unit_id: Ustr,
     },
+
+    #[clap(about = "Remove all the trials from units matching the given prefix")]
+    RemoveScoresPrefix {
+        #[clap(help = "The prefix to match against the trials")]
+        prefix: String,
+    },
 }
 
 /// Contains subcommands used for setting and displaying unit filters.
@@ -528,6 +534,12 @@ impl TraneCli {
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
                 let unit_type = app.get_unit_type(&unit_id)?;
                 println!("The type of the unit with ID {unit_id} is {unit_type:?}");
+                Ok(true)
+            }
+
+            Subcommands::Debug(DebugSubcommands::RemoveScoresPrefix { prefix }) => {
+                app.remove_prefix_from_scores(&prefix)?;
+                println!("Removed scores from units matching prefix {prefix}");
                 Ok(true)
             }
 
