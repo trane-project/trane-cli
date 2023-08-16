@@ -56,9 +56,16 @@ fn main() -> Result<()> {
 
         match readline {
             Ok(line) => {
+                // Trim any blank space from the line.
+                let line = line.trim();
+
+                // Ignore comments and empty lines.
                 if line.starts_with('#') || line.eq("") {
                     continue;
                 };
+
+                // Split the line into a vector of arguments. Add an initial argument with value
+                // "trane" if the line doesn't have it, so the parser can recognize the input.
                 let split: Vec<&str> = line.split(' ').collect();
                 let mut args = if !split.is_empty() && split[0] == "trane" {
                     vec![]
@@ -67,12 +74,14 @@ fn main() -> Result<()> {
                 };
                 args.extend(split);
 
+                // Parse the arguments.
                 let cli = TraneCli::try_parse_from(args.iter());
                 if cli.is_err() {
                     println!("{}", cli.unwrap_err());
                     continue;
                 }
 
+                // Execute the subcommand.
                 match cli.unwrap().execute_subcommand(&mut app) {
                     Ok(continue_execution) => match continue_execution {
                         true => continue,
@@ -82,7 +91,7 @@ fn main() -> Result<()> {
                 }
             }
             Err(ReadlineError::Interrupted) => {
-                println!("Press CTRL-D to exit");
+                println!("Press CTRL-D or use the quit command to exit");
                 continue;
             }
             Err(ReadlineError::Eof) => {
