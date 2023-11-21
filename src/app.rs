@@ -276,10 +276,16 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Filters out any empty ID from the given list.
+    fn filter_empty_ids(&self, ids: &[Ustr]) -> Vec<Ustr> {
+        ids.iter().filter(|id| !id.is_empty()).cloned().collect()
+    }
+
     /// Sets the filter to only show exercises from the given courses.
     pub fn filter_courses(&mut self, course_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        let course_ids = Self::filter_empty_ids(self, &course_ids);
         for course_id in &course_ids {
             let unit_type = self.get_unit_type(course_id)?;
             if unit_type != UnitType::Course {
@@ -296,6 +302,7 @@ impl TraneApp {
     pub fn filter_lessons(&mut self, lesson_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        let lesson_ids = Self::filter_empty_ids(self, &lesson_ids);
         for lesson_id in &lesson_ids {
             let unit_type = self.get_unit_type(lesson_id)?;
             if unit_type != UnitType::Lesson {
@@ -372,6 +379,7 @@ impl TraneApp {
     pub fn filter_dependencies(&mut self, unit_ids: Vec<Ustr>, depth: usize) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        let unit_ids = Self::filter_empty_ids(self, &unit_ids);
         self.filter = Some(UnitFilter::Dependencies { unit_ids, depth });
         self.reset_batch();
         Ok(())
@@ -381,6 +389,7 @@ impl TraneApp {
     pub fn filter_dependents(&mut self, unit_ids: Vec<Ustr>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
+        let unit_ids = Self::filter_empty_ids(self, &unit_ids);
         self.filter = Some(UnitFilter::Dependents { unit_ids });
         self.reset_batch();
         Ok(())
