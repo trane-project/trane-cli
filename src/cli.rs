@@ -470,7 +470,7 @@ impl TraneCli {
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Add { unit_id }) => {
-                app.blacklist_unit(&unit_id)?;
+                app.blacklist_unit(unit_id)?;
                 println!("Added unit {unit_id} to the blacklist");
                 Ok(true)
             }
@@ -494,7 +494,7 @@ impl TraneCli {
             }
 
             Subcommands::Blacklist(BlacklistSubcommands::Remove { unit_id }) => {
-                app.remove_from_blacklist(&unit_id)?;
+                app.remove_from_blacklist(unit_id)?;
                 println!("Removed {unit_id} from the blacklist");
                 Ok(true)
             }
@@ -527,12 +527,12 @@ impl TraneCli {
             }
 
             Subcommands::Debug(DebugSubcommands::UnitInfo { unit_id }) => {
-                app.show_unit_info(&unit_id)?;
+                app.show_unit_info(unit_id)?;
                 Ok(true)
             }
 
             Subcommands::Debug(DebugSubcommands::UnitType { unit_id }) => {
-                let unit_type = app.get_unit_type(&unit_id)?;
+                let unit_type = app.get_unit_type(unit_id)?;
                 println!("The type of the unit with ID {unit_id} is {unit_type:?}");
                 Ok(true)
             }
@@ -617,12 +617,12 @@ impl TraneCli {
             }
 
             Subcommands::Instructions(InstructionSubcommands::Course { course_id }) => {
-                app.show_course_instructions(&course_id)?;
+                app.show_course_instructions(course_id)?;
                 Ok(true)
             }
 
             Subcommands::Instructions(InstructionSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_instructions(&lesson_id)?;
+                app.show_lesson_instructions(lesson_id)?;
                 Ok(true)
             }
 
@@ -632,22 +632,22 @@ impl TraneCli {
             }
 
             Subcommands::List(ListSubcommands::Dependencies { unit_id }) => {
-                app.list_dependencies(&unit_id)?;
+                app.list_dependencies(unit_id)?;
                 Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Dependents { unit_id }) => {
-                app.list_dependents(&unit_id)?;
+                app.list_dependents(unit_id)?;
                 Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Exercises { lesson_id }) => {
-                app.list_exercises(&lesson_id)?;
+                app.list_exercises(lesson_id)?;
                 Ok(true)
             }
 
             Subcommands::List(ListSubcommands::Lessons { course_id }) => {
-                app.list_lessons(&course_id)?;
+                app.list_lessons(course_id)?;
                 Ok(true)
             }
 
@@ -657,12 +657,12 @@ impl TraneCli {
             }
 
             Subcommands::List(ListSubcommands::MatchingLessons { course_id }) => {
-                app.list_matching_lessons(&course_id)?;
+                app.list_matching_lessons(course_id)?;
                 Ok(true)
             }
 
             Subcommands::Material(MaterialSubcommands::Course { course_id }) => {
-                app.show_course_material(&course_id)?;
+                app.show_course_material(course_id)?;
                 Ok(true)
             }
 
@@ -672,7 +672,7 @@ impl TraneCli {
             }
 
             Subcommands::Material(MaterialSubcommands::Lesson { lesson_id }) => {
-                app.show_lesson_material(&lesson_id)?;
+                app.show_lesson_material(lesson_id)?;
                 Ok(true)
             }
 
@@ -725,7 +725,7 @@ impl TraneCli {
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Add { unit_id }) => {
-                app.add_to_review_list(&unit_id)?;
+                app.add_to_review_list(unit_id)?;
                 println!("Added unit {unit_id} to the review list.");
                 Ok(true)
             }
@@ -736,7 +736,7 @@ impl TraneCli {
             }
 
             Subcommands::ReviewList(ReviewListSubcommands::Remove { unit_id }) => {
-                app.remove_from_review_list(&unit_id)?;
+                app.remove_from_review_list(unit_id)?;
                 println!("Removed unit {unit_id} from the review list.");
                 Ok(true)
             }
@@ -756,7 +756,7 @@ impl TraneCli {
                 exercise_id,
                 num_scores,
             } => {
-                app.show_scores(&exercise_id, num_scores)?;
+                app.show_scores(exercise_id, num_scores)?;
                 Ok(true)
             }
 
