@@ -1,5 +1,16 @@
 //! A command-line interface for Trane.
 
+// Allow pedantic warnings but disable some that are not useful.
+#![warn(clippy::pedantic)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::too_many_lines)]
+
 mod app;
 mod built_info {
     // The file has been placed there by the build script.
@@ -44,7 +55,7 @@ fn main() -> Result<()> {
         }
     }
     match rl.load_history(history_path) {
-        Ok(_) => (),
+        Ok(()) => (),
         Err(e) => {
             eprintln!("Failed to load history file at .trane_history: {e}");
         }
@@ -83,10 +94,12 @@ fn main() -> Result<()> {
 
                 // Execute the subcommand.
                 match cli.unwrap().execute_subcommand(&mut app) {
-                    Ok(continue_execution) => match continue_execution {
-                        true => continue,
-                        false => break,
-                    },
+                    Ok(continue_execution) => {
+                        if continue_execution {
+                            continue;
+                        }
+                        break;
+                    }
                     Err(err) => println!("Error: {err:#}"),
                 }
             }
@@ -110,7 +123,7 @@ fn main() -> Result<()> {
     }
 
     match rl.save_history(history_path) {
-        Ok(_) => (),
+        Ok(()) => (),
         Err(e) => {
             eprintln!("Failed to save history to file .trane_history: {e}");
         }

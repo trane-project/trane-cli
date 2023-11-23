@@ -54,7 +54,7 @@ impl DisplayExercise for ExerciseAsset {
                 if let Some(description) = description {
                     println!("Exercise description:");
                     print_inline(description);
-                    println!()
+                    println!();
                 }
                 println!("SoundSlice link: {link}");
                 Ok(())
