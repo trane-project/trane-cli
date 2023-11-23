@@ -549,13 +549,13 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::Courses { ids }) => {
-                app.filter_courses(ids)?;
+                app.filter_courses(&ids)?;
                 println!("Set the unit filter to only show exercises from the given courses");
                 Ok(true)
             }
 
             Subcommands::Filter(FilterSubcommands::Lessons { ids }) => {
-                app.filter_lessons(ids)?;
+                app.filter_lessons(&ids)?;
                 println!("Set the unit filter to only show exercises from the given lessons");
                 Ok(true)
             }
@@ -572,11 +572,10 @@ impl TraneCli {
                 course_metadata,
             }) => {
                 let filter_op = match (any, all) {
-                    (false, false) => FilterOp::All,
                     (true, _) => FilterOp::Any,
-                    (_, true) => FilterOp::All,
+                    (false, false) | (_, true) => FilterOp::All,
                 };
-                app.filter_metadata(filter_op, &lesson_metadata, &course_metadata)?;
+                app.filter_metadata(filter_op, &lesson_metadata, &course_metadata);
                 println!("Set the unit filter to only show exercises with the given metadata");
                 Ok(true)
             }
@@ -588,7 +587,7 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::Dependencies { ids, depth }) => {
-                app.filter_dependencies(ids, depth)?;
+                app.filter_dependencies(&ids, depth)?;
                 println!(
                     "Set the unit filter to only show exercises starting from the depedents of \
                     the given units"
@@ -597,7 +596,7 @@ impl TraneCli {
             }
 
             Subcommands::Filter(FilterSubcommands::Dependents { ids }) => {
-                app.filter_dependents(ids)?;
+                app.filter_dependents(&ids)?;
                 println!(
                     "Set the unit filter to only show exercises from the given units and their \
                     dependencies"

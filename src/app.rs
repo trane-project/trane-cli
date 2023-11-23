@@ -54,9 +54,9 @@ pub(crate) struct TraneApp {
 impl TraneApp {
     /// Returns the version of the Trane library dependency used by this binary.
     fn trane_version() -> Option<String> {
-        for (key, value) in built_info::DEPENDENCIES.iter() {
+        for (key, value) in &built_info::DEPENDENCIES {
             if *key == "trane" {
-                return Some(value.to_string());
+                return Some((*value).to_string());
             }
         }
         None
@@ -274,15 +274,15 @@ impl TraneApp {
     }
 
     /// Filters out any empty ID from the given list.
-    fn filter_empty_ids(&self, ids: &[Ustr]) -> Vec<Ustr> {
-        ids.iter().filter(|id| !id.is_empty()).cloned().collect()
+    fn filter_empty_ids(ids: &[Ustr]) -> Vec<Ustr> {
+        ids.iter().filter(|id| !id.is_empty()).copied().collect()
     }
 
     /// Sets the filter to only show exercises from the given courses.
-    pub fn filter_courses(&mut self, course_ids: Vec<Ustr>) -> Result<()> {
+    pub fn filter_courses(&mut self, course_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let course_ids = Self::filter_empty_ids(self, &course_ids);
+        let course_ids = Self::filter_empty_ids(course_ids);
         for course_id in &course_ids {
             let unit_type = self.get_unit_type(*course_id)?;
             if unit_type != UnitType::Course {
@@ -296,10 +296,10 @@ impl TraneApp {
     }
 
     /// Sets the filter to only show exercises from the given lessons.
-    pub fn filter_lessons(&mut self, lesson_ids: Vec<Ustr>) -> Result<()> {
+    pub fn filter_lessons(&mut self, lesson_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let lesson_ids = Self::filter_empty_ids(self, &lesson_ids);
+        let lesson_ids = Self::filter_empty_ids(lesson_ids);
         for lesson_id in &lesson_ids {
             let unit_type = self.get_unit_type(*lesson_id)?;
             if unit_type != UnitType::Lesson {
@@ -319,7 +319,7 @@ impl TraneApp {
         filter_op: FilterOp,
         lesson_metadata: &Option<Vec<KeyValue>>,
         course_metadata: &Option<Vec<KeyValue>>,
-    ) -> Result<()> {
+    ) {
         let basic_lesson_filters: Vec<_> = lesson_metadata
             .as_ref()
             .map(|pairs| {
@@ -359,7 +359,6 @@ impl TraneApp {
             },
         });
         self.reset_batch();
-        Ok(())
     }
 
     /// Sets the filter to only show exercises from the review list.
@@ -373,20 +372,20 @@ impl TraneApp {
 
     /// Sets the filter to only show exercises starting from the dependencies of the given units at
     /// the given depth.
-    pub fn filter_dependencies(&mut self, unit_ids: Vec<Ustr>, depth: usize) -> Result<()> {
+    pub fn filter_dependencies(&mut self, unit_ids: &[Ustr], depth: usize) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let unit_ids = Self::filter_empty_ids(self, &unit_ids);
+        let unit_ids = Self::filter_empty_ids(unit_ids);
         self.filter = Some(UnitFilter::Dependencies { unit_ids, depth });
         self.reset_batch();
         Ok(())
     }
 
     /// Sets the filter to only show exercises from the given units and their dependents.
-    pub fn filter_dependents(&mut self, unit_ids: Vec<Ustr>) -> Result<()> {
+    pub fn filter_dependents(&mut self, unit_ids: &[Ustr]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let unit_ids = Self::filter_empty_ids(self, &unit_ids);
+        let unit_ids = Self::filter_empty_ids(unit_ids);
         self.filter = Some(UnitFilter::Dependents { unit_ids });
         self.reset_batch();
         Ok(())
@@ -470,7 +469,7 @@ impl TraneApp {
 
         println!("Dependencies:");
         println!();
-        self.print_units_info(&dependencies.iter().cloned().collect::<Vec<_>>())?;
+        self.print_units_info(&dependencies.iter().copied().collect::<Vec<_>>())?;
         Ok(())
     }
 
@@ -496,7 +495,7 @@ impl TraneApp {
 
         println!("Dependents:");
         println!();
-        self.print_units_info(&dependents.iter().cloned().collect::<Vec<_>>())?;
+        self.print_units_info(&dependents.iter().copied().collect::<Vec<_>>())?;
         Ok(())
     }
 
@@ -564,8 +563,8 @@ impl TraneApp {
                         UnitFilter::CourseFilter { .. } => filter.passes_course_filter(course_id),
                         UnitFilter::LessonFilter { .. } => false,
                         UnitFilter::MetadataFilter { filter } => filter.apply_to_course(&manifest),
-                        UnitFilter::Dependents { unit_ids } => unit_ids.contains(course_id),
-                        UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
+                        UnitFilter::Dependents { unit_ids }
+                        | UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
                                 self.trane.as_ref().unwrap().get_review_list_entries()
@@ -640,8 +639,8 @@ impl TraneApp {
                                 false
                             }
                         }
-                        UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(lesson_id),
-                        UnitFilter::Dependents { unit_ids } => unit_ids.contains(lesson_id),
+                        UnitFilter::Dependencies { unit_ids, .. }
+                        | UnitFilter::Dependents { unit_ids } => unit_ids.contains(lesson_id),
                     },
                     None => false,
                 }
@@ -887,8 +886,8 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_scores(exercise_id, num_scores)?;
-        let scorer = SimpleScorer {};
-        let aggregate_score = scorer.score(&scores)?;
+        let simple_scorer = SimpleScorer {};
+        let aggregate_score = simple_scorer.score(&scores)?;
 
         // Print the scores.
         println!("Scores for exercise {exercise_id}:");
@@ -908,7 +907,7 @@ impl TraneApp {
     }
 
     /// Prints the manifest for the unit with the given UID.
-    fn show_unit_manifest(&self, unit_id: Ustr, unit_type: UnitType) -> Result<()> {
+    fn show_unit_manifest(&self, unit_id: Ustr, unit_type: &UnitType) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         match unit_type {
@@ -953,7 +952,7 @@ impl TraneApp {
         let unit_type = self.get_unit_type(unit_id)?;
         println!("Unit ID: {unit_id}");
         println!("Unit Type: {unit_type}");
-        self.show_unit_manifest(unit_id, unit_type)
+        self.show_unit_manifest(unit_id, &unit_type)
     }
 
     /// Trims the scores for each exercise by removing all the scores except for the `num_scores`
@@ -972,7 +971,7 @@ impl TraneApp {
             .as_mut()
             .unwrap()
             .remove_scores_with_prefix(prefix)?;
-        println!("Removed scores for all exercises with prefix {}", prefix);
+        println!("Removed scores for all exercises with prefix {prefix}");
         Ok(())
     }
 
