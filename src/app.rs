@@ -41,7 +41,7 @@ pub(crate) struct TraneApp {
     study_session: Option<StudySessionData>,
 
     /// The current batch of exercises.
-    batch: Vec<(Ustr, ExerciseManifest)>,
+    batch: Vec<ExerciseManifest>,
 
     /// The index of the current exercise in the batch.
     batch_index: usize,
@@ -103,7 +103,7 @@ impl TraneApp {
     }
 
     /// Returns the current exercise.
-    fn current_exercise(&self) -> Result<(Ustr, ExerciseManifest)> {
+    fn current_exercise(&self) -> Result<ExerciseManifest> {
         self.batch
             .get(self.batch_index)
             .cloned()
@@ -114,7 +114,7 @@ impl TraneApp {
     fn current_exercise_course(&self) -> Result<Ustr> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let (_, manifest) = self.current_exercise()?;
+        let manifest = self.current_exercise()?;
         Ok(manifest.course_id)
     }
 
@@ -122,7 +122,7 @@ impl TraneApp {
     fn current_exercise_lesson(&self) -> Result<Ustr> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let (_, manifest) = self.current_exercise()?;
+        let manifest = self.current_exercise()?;
         Ok(manifest.lesson_id)
     }
 
@@ -134,7 +134,7 @@ impl TraneApp {
             let curr_exercise = self.current_exercise()?;
             let timestamp = Utc::now().timestamp();
             self.trane.as_ref().unwrap().score_exercise(
-                curr_exercise.0,
+                curr_exercise.id,
                 mastery_score.clone(),
                 timestamp,
             )?;
@@ -188,7 +188,7 @@ impl TraneApp {
     pub fn blacklist_exercise(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let (_, manifest) = self.current_exercise()?;
+        let manifest = self.current_exercise()?;
         self.trane.as_mut().unwrap().add_to_blacklist(manifest.id)?;
         self.reset_batch();
         Ok(())
@@ -222,7 +222,7 @@ impl TraneApp {
     pub fn current(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let (_, manifest) = self.current_exercise()?;
+        let manifest = self.current_exercise()?;
         manifest.display_exercise()
     }
 
@@ -257,7 +257,7 @@ impl TraneApp {
     /// Returns the given exercise ID or the current exercise's ID if the given ID is empty.
     fn exercise_id_or_current(&self, exercise_id: Ustr) -> Result<Ustr> {
         if exercise_id.is_empty() {
-            Ok(self.current_exercise()?.0)
+            Ok(self.current_exercise()?.id)
         } else {
             Ok(exercise_id)
         }
@@ -689,7 +689,7 @@ impl TraneApp {
             self.batch_index = 0;
         }
 
-        let (_, manifest) = self.current_exercise()?;
+        let manifest = self.current_exercise()?;
         manifest.display_exercise()
     }
 
@@ -740,7 +740,7 @@ impl TraneApp {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         let curr_exercise = self.current_exercise()?;
-        curr_exercise.1.display_answer()
+        curr_exercise.display_answer()
     }
 
     /// Lists all the entries in the blacklist.
