@@ -37,7 +37,7 @@ jobs:
           os: macos-latest
           rust: stable
           target: aarch64-apple-darwin
-          cargo_cmd: cargo
+          cargo_cmd: cross
         - build: x86_64-windows
           os: windows-latest
           rust: stable
