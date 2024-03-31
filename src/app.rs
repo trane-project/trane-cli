@@ -1093,7 +1093,7 @@ impl TraneApp {
     }
 
     /// Searches for units which match the given query.
-    pub fn search(&self, terms: &Vec<String>) -> Result<()> {
+    pub fn search(&self, terms: &[String]) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         ensure!(!terms.is_empty(), "no search terms given");
 
