@@ -15,7 +15,7 @@ path = "src/simple_build.rs"
 
 [dependencies]
 anyhow = "1.0.69"
-built = { version = "0.7.4", features = ["chrono", "dependency-tree", "git2", "semver"] }
+built = { version = "0.7.0", features = ["chrono", "dependency-tree", "git2", "semver"] }
 chrono = "0.4.23"
 clap = { version = "4.1.8", features = ["derive"] }
 indoc = "2.0.0"
