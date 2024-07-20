@@ -47,6 +47,7 @@ pub trait DisplayExercise {
 impl DisplayExercise for ExerciseAsset {
     fn display_exercise(&self) -> Result<()> {
         match self {
+            ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
             ExerciseAsset::FlashcardAsset { front_path, .. } => print_markdown(front_path),
             ExerciseAsset::SoundSliceAsset {
                 link, description, ..
@@ -59,7 +60,11 @@ impl DisplayExercise for ExerciseAsset {
                 println!("SoundSlice link: {link}");
                 Ok(())
             }
-            ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
+            ExerciseAsset::TranscriptionAsset { content, .. } => {
+                print_inline(content);
+                println!();
+                Ok(())
+            }
         }
     }
 }
@@ -88,6 +93,11 @@ pub trait DisplayAnswer {
 impl DisplayAnswer for ExerciseAsset {
     fn display_answer(&self) -> Result<()> {
         match self {
+            ExerciseAsset::BasicAsset(_) | ExerciseAsset::TranscriptionAsset { .. } => {
+                println!("No answer available for this exercise.");
+                println!();
+                Ok(())
+            }
             ExerciseAsset::FlashcardAsset { back_path, .. } => {
                 if let Some(back_path) = back_path {
                     println!("Answer:");
@@ -99,11 +109,6 @@ impl DisplayAnswer for ExerciseAsset {
                 }
             }
             ExerciseAsset::SoundSliceAsset { .. } => Ok(()),
-            ExerciseAsset::BasicAsset(asset) => {
-                println!("Answer:");
-                println!();
-                asset.display_asset()
-            }
         }
     }
 }

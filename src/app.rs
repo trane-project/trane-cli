@@ -21,6 +21,7 @@ use trane::{
     scheduler::ExerciseScheduler,
     scorer::{ExerciseScorer, SimpleScorer},
     study_session_manager::StudySessionManager,
+    transcription_downloader::TranscriptionDownloader,
     Trane,
 };
 use ustr::Ustr;
@@ -1201,5 +1202,53 @@ impl TraneApp {
             println!("Study session:");
             println!("{:#?}", self.study_session.as_ref().unwrap());
         }
+    }
+
+    pub fn transcription_path(&self, exercise_id: Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let trane = self.trane.as_ref().unwrap();
+        let path = trane.transcription_download_path(exercise_id);
+        if let Some(path) = path {
+            println!("Transcription asset download path: {}", path.display());
+        }
+        let alias_path = trane.transcription_download_path_alias(exercise_id);
+        if let Some(alias_path) = alias_path {
+            println!(
+                "Transcription asset download path alias: {}",
+                alias_path.display()
+            );
+        }
+        Ok(())
+    }
+
+    pub fn download_transcription_asset(&self, exercise_id: Ustr, redownload: bool) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        self.trane
+            .as_ref()
+            .unwrap()
+            .download_transcription_asset(exercise_id, redownload)?;
+        println!("Transcription asset for exercise {exercise_id} downloaded");
+        println!();
+        self.transcription_path(exercise_id)?;
+        Ok(())
+    }
+
+    pub fn is_transcription_asset_downloaded(&self, exercise_id: Ustr) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        let trane = self.trane.as_ref().unwrap();
+        let is_downloaded = trane.is_transcription_asset_downloaded(exercise_id);
+        if is_downloaded {
+            println!("Transcription for exercise {exercise_id} is downloaded");
+            println!();
+            self.transcription_path(exercise_id)?;
+        } else {
+            println!("Transcription for exercise {exercise_id} is not downloaded");
+        }
+        Ok(())
     }
 }
