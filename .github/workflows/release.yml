@@ -32,7 +32,7 @@ jobs:
           os: macos-latest
           rust: stable
           target: x86_64-apple-darwin
-          cargo_cmd: cross
+          cargo_cmd: cargo
         - build: x86_64-windows
           os: windows-latest
           rust: stable
@@ -56,8 +56,8 @@ jobs:
       - name: Install cross
         run:  cargo install --version 0.1.16 cross
 
-      - name: Install libssl-dev
-        run: apt install -y libssl-dev
+      - name: Install OpenSSL library
+        run: sudo apt-get install -y libssl-dev || brew install openssl@3 || echo "WINDOWS"
 
       - name: Run cargo test
         run: ${{ matrix.cargo_cmd }} test --release --locked --target ${{ matrix.target }}
