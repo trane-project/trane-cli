@@ -352,6 +352,45 @@ pub(crate) enum StudySessionSubcommands {
     #[clap(about = "Shows the selected study session")]
     Show,
 }
+
+/// Contains subcommands used for dealing with transcription exercises.
+#[derive(Clone, Debug, Subcommand)]
+pub(crate) enum TranscriptionSubcommands {
+    #[clap(about = "Download the asset for the given transcription exercise. \
+        The current exercise's ID is used if no ID is provided")]
+    Download {
+        #[clap(help = "The ID of the exercise")]
+        #[clap(default_value = "")]
+        #[clap(long = "exercise-id")]
+        exercise_id: Ustr,
+
+        #[clap(help = "Whether to redownload the asset if it already exists")]
+        #[clap(default_value = "false")]
+        #[clap(long = "redownload")]
+        redownload: bool,
+    },
+
+    #[clap(
+        about = "Checks if the the asset for the given transcription exercise has been \
+        downloaded. The current exercise's ID is used if no ID is provided"
+    )]
+    IsDownloaded {
+        #[clap(help = "The ID of the exercise")]
+        #[clap(default_value = "")]
+        exercise_id: Ustr,
+    },
+
+    #[clap(
+        about = "Shows the path to the downloaded asset for the given transcription exercise. \
+        The current exercise's ID is used if no ID is provided"
+    )]
+    Path {
+        #[clap(help = "The ID of the exercise")]
+        #[clap(default_value = "")]
+        exercise_id: Ustr,
+    },
+}
+
 /// Contains the available subcommands.
 #[derive(Clone, Debug, Subcommand)]
 pub(crate) enum Subcommands {
@@ -449,6 +488,10 @@ pub(crate) enum Subcommands {
     #[clap(about = "Subcommands for setting and displaying study sessions")]
     #[clap(subcommand)]
     StudySession(StudySessionSubcommands),
+
+    #[clap(about = "Subcommands for dealing with transcription exercises")]
+    #[clap(subcommand)]
+    Transcription(TranscriptionSubcommands),
 }
 
 /// A command-line interface for Trane.
@@ -801,6 +844,24 @@ impl TraneCli {
                 app.show_study_session();
                 Ok(true)
             }
+
+            Subcommands::Transcription(subcommand) => match subcommand {
+                TranscriptionSubcommands::Download {
+                    exercise_id,
+                    redownload,
+                } => {
+                    app.download_transcription_asset(exercise_id, redownload)?;
+                    Ok(true)
+                }
+                TranscriptionSubcommands::IsDownloaded { exercise_id } => {
+                    app.is_transcription_asset_downloaded(exercise_id)?;
+                    Ok(true)
+                }
+                TranscriptionSubcommands::Path { exercise_id } => {
+                    app.transcription_path(exercise_id)?;
+                    Ok(true)
+                }
+            },
         }
     }
 }
