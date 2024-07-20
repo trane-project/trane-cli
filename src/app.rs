@@ -1204,6 +1204,7 @@ impl TraneApp {
         }
     }
 
+    /// Prints the path to the transcription asset for the given exercise.
     pub fn transcription_path(&self, exercise_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -1222,6 +1223,8 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Downloads the transcription asset from the given exercise to the specified directory in the
+    /// user preferences.
     pub fn download_transcription_asset(&self, exercise_id: Ustr, redownload: bool) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
@@ -1236,6 +1239,7 @@ impl TraneApp {
         Ok(())
     }
 
+    /// Prints whether the transcription asset for the given exercise has been downloaded.
     pub fn is_transcription_asset_downloaded(&self, exercise_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
