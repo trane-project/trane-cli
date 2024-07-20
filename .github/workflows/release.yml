@@ -57,7 +57,7 @@ jobs:
         run:  cargo install --version 0.1.16 cross
 
       - name: Install libssl-dev
-        run:  sudo apt install -y libssl-dev
+        run: apt install -y libssl-dev
 
       - name: Run cargo test
         run: ${{ matrix.cargo_cmd }} test --release --locked --target ${{ matrix.target }}
