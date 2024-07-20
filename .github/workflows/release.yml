@@ -29,7 +29,7 @@ jobs:
           target: aarch64-unknown-linux-gnu
           cargo_cmd: cross
         - build: x86_64-macos
-          os: macos-latest
+          os: macos-14-large
           rust: stable
           target: x86_64-apple-darwin
           cargo_cmd: cargo
@@ -55,9 +55,6 @@ jobs:
 
       - name: Install cross
         run:  cargo install --version 0.1.16 cross
-
-      - name: Install OpenSSL library
-        run: sudo apt-get install -y libssl-dev || brew install openssl@3 || echo "WINDOWS"
 
       - name: Run cargo test
         run: ${{ matrix.cargo_cmd }} test --release --locked --target ${{ matrix.target }}
