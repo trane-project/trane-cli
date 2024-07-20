@@ -129,27 +129,25 @@ pub(crate) enum FilterSubcommands {
     #[clap(about = "Set the unit filter to only show exercises with the given metadata")]
     Metadata {
         #[clap(help = "If true, include units which match all of the key-value pairs")]
-        #[clap(long = "all")]
+        #[clap(long)]
         #[clap(conflicts_with = "any")]
         all: bool,
 
         #[clap(help = "If true, include units which match any of the key-value pairs")]
-        #[clap(long = "any")]
+        #[clap(long)]
         #[clap(conflicts_with = "all")]
         any: bool,
 
         #[clap(help = "Key-value pairs (written as key:value) of course metadata to filter on")]
         #[clap(name = "course-metadata")]
-        #[clap(long = "course-metadata")]
-        #[clap(short = 'c')]
+        #[clap(long, short)]
         #[clap(num_args = 1..)]
         #[clap(required_unless_present("lesson-metadata"))]
         course_metadata: Option<Vec<KeyValue>>,
 
         #[clap(help = "Key-value pairs (written as key:value) of lesson metadata to filter on")]
         #[clap(name = "lesson-metadata")]
-        #[clap(long = "lesson-metadata")]
-        #[clap(short = 'l')]
+        #[clap(long, short)]
         #[clap(num_args = 1..)]
         #[clap(required_unless_present("course-metadata"))]
         lesson_metadata: Option<Vec<KeyValue>>,
@@ -174,6 +172,7 @@ pub(crate) enum FilterSubcommands {
         ids: Vec<Ustr>,
 
         #[clap(help = "The maximum depth to search for dependencies")]
+        #[clap(long, short)]
         depth: usize,
     },
 
@@ -276,22 +275,26 @@ pub(crate) enum RepositorySubcommands {
         #[clap(help = "The URL of the git repository")]
         url: String,
 
-        #[clap(help = "The id to assign to the repository")]
+        #[clap(
+            help = "The optional ID to assign to the repository. If not provided, the \
+            repository's name is used"
+        )]
+        #[clap(long, short)]
         repo_id: Option<String>,
     },
 
-    #[clap(about = "Remove the git repository with the given id from the library")]
+    #[clap(about = "Remove the git repository with the given ID from the library")]
     Remove {
-        #[clap(help = "The id of the repository")]
+        #[clap(help = "The ID of the repository")]
         repo_id: String,
     },
 
     #[clap(about = "List the managed git repositories in the library")]
     List,
 
-    #[clap(about = "Update the managed git repository with the given id")]
+    #[clap(about = "Update the managed git repository with the given ID")]
     Update {
-        #[clap(help = "The id of the repository")]
+        #[clap(help = "The ID of the repository")]
         repo_id: String,
     },
 
@@ -326,7 +329,7 @@ pub(crate) enum SchedulerOptionsSubcommands {
     #[clap(about = "Set the scheduler options to the given values")]
     Set {
         #[clap(help = "The new batch size")]
-        #[clap(long = "batch-size")]
+        #[clap(long, short)]
         batch_size: usize,
     },
 
@@ -361,12 +364,11 @@ pub(crate) enum TranscriptionSubcommands {
     Download {
         #[clap(help = "The ID of the exercise")]
         #[clap(default_value = "")]
-        #[clap(long = "exercise-id")]
         exercise_id: Ustr,
 
         #[clap(help = "Whether to redownload the asset if it already exists")]
         #[clap(default_value = "false")]
-        #[clap(long = "redownload")]
+        #[clap(long, short)]
         redownload: bool,
     },
 
@@ -477,7 +479,7 @@ pub(crate) enum Subcommands {
         exercise_id: Ustr,
 
         #[clap(help = "The number of scores to show")]
-        #[clap(short, long, default_value = "20")]
+        #[clap(long, short, default_value = "20")]
         num_scores: usize,
     },
 
