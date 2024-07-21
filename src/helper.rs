@@ -46,8 +46,8 @@ impl Highlighter for MyHelper {
     }
 
     /// Custom logic to highlight the current character.
-    fn highlight_char(&self, line: &str, pos: usize) -> bool {
-        self.highlighter.highlight_char(line, pos)
+    fn highlight_char(&self, line: &str, pos: usize, force: bool) -> bool {
+        self.highlighter.highlight_char(line, pos, force)
     }
 }
 
