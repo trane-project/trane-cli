@@ -14,19 +14,19 @@ name = "trane-simple-build"
 path = "src/simple_build.rs"
 
 [dependencies]
-anyhow = "1"
-built = { version = "0.7", features = ["chrono", "dependency-tree", "git2", "semver"] }
-chrono = "0.4"
-clap = { version = "4", features = ["derive"] }
-indoc = "2"
-rustyline = "14"
-rustyline-derive = "0.10"
-serde_json = "1"
-termimad = "0.29"
-trane = "0.21.2"
-ustr = { version = "1", features = ["serde"] }
+anyhow = "1.0.86"
+built = { version = "0.7.4", features = ["chrono", "dependency-tree", "git2", "semver"] }
+chrono = "0.4.38"
+clap = { version = "4.5.9", features = ["derive"] }
+indoc = "2.0.5"
+rustyline = "14.0.0"
+rustyline-derive = "0.10.0"
+serde_json = "1.0.120"
+termimad = "0.29.4"
+trane = "0.21.3"
+ustr = { version = "1.0.0", features = ["serde"] }
 # Commented out for use in local development.
 # trane = { path = "../trane" }
 
 [build-dependencies]
-built = { version = "0.7.0", features = ["chrono", "dependency-tree", "git2", "semver"] }
+built = { version = "0.7.4", features = ["chrono", "dependency-tree", "git2", "semver"] }
