@@ -1,9 +1,12 @@
 //! Contains the logic to print Trane assets to the terminal.
 
 use anyhow::{Context, Result};
+use rand::prelude::SliceRandom;
 use std::fs::read_to_string;
 use termimad::print_inline;
-use trane::data::{BasicAsset, ExerciseAsset, ExerciseManifest};
+use trane::data::{
+    course_generator::literacy::LiteracyLesson, BasicAsset, ExerciseAsset, ExerciseManifest,
+};
 
 /// Prints the markdown file at the given path to the terminal.
 pub fn print_markdown(path: &str) -> Result<()> {
@@ -12,6 +15,39 @@ pub fn print_markdown(path: &str) -> Result<()> {
     print_inline(&contents);
     println!();
     Ok(())
+}
+
+/// Randomly samples five values from the given list of strings.
+fn sample(values: &[String]) -> Vec<String> {
+    let mut sampled = values.to_vec();
+    let mut rng = rand::thread_rng();
+    sampled.shuffle(&mut rng);
+    sampled.truncate(5);
+    sampled
+}
+
+/// Prints a literacy asset to the terminal.
+pub fn print_literacy(lesson_type: &LiteracyLesson, examples: &[String], exceptions: &[String]) {
+    let sampled_examples = sample(examples);
+    let sampled_exceptions = sample(exceptions);
+    match lesson_type {
+        LiteracyLesson::Reading => println!("Lesson type: Reading"),
+        LiteracyLesson::Dictation => println!("Lesson type: Dictation"),
+    }
+    if !sampled_examples.is_empty() {
+        println!("Examples:");
+        for example in sampled_examples {
+            print_inline(&example);
+            println!();
+        }
+    }
+    if !sampled_exceptions.is_empty() {
+        println!("Exceptions:");
+        for exception in sampled_exceptions {
+            print_inline(&exception);
+            println!();
+        }
+    }
 }
 
 /// Trait to display an asset to the terminal.
@@ -49,6 +85,14 @@ impl DisplayExercise for ExerciseAsset {
         match self {
             ExerciseAsset::BasicAsset(asset) => asset.display_asset(),
             ExerciseAsset::FlashcardAsset { front_path, .. } => print_markdown(front_path),
+            ExerciseAsset::LiteracyAsset {
+                lesson_type,
+                examples,
+                exceptions,
+            } => {
+                print_literacy(lesson_type, examples, exceptions);
+                Ok(())
+            }
             ExerciseAsset::SoundSliceAsset {
                 link, description, ..
             } => {
@@ -108,7 +152,7 @@ impl DisplayAnswer for ExerciseAsset {
                     Ok(())
                 }
             }
-            ExerciseAsset::SoundSliceAsset { .. } => Ok(()),
+            ExerciseAsset::SoundSliceAsset { .. } | ExerciseAsset::LiteracyAsset { .. } => Ok(()),
         }
     }
 }
