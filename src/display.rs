@@ -36,6 +36,7 @@ pub fn print_literacy(lesson_type: &LiteracyLesson, examples: &[String], excepti
     }
     if !sampled_examples.is_empty() {
         println!("Examples:");
+        println!();
         for example in sampled_examples {
             print_inline(&example);
             println!();
@@ -43,6 +44,7 @@ pub fn print_literacy(lesson_type: &LiteracyLesson, examples: &[String], excepti
     }
     if !sampled_exceptions.is_empty() {
         println!("Exceptions:");
+        println!();
         for exception in sampled_exceptions {
             print_inline(&exception);
             println!();
