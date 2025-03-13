@@ -5,7 +5,7 @@ use rand::prelude::SliceRandom;
 use std::fs::read_to_string;
 use termimad::print_inline;
 use trane::data::{
-    course_generator::literacy::LiteracyLesson, BasicAsset, ExerciseAsset, ExerciseManifest,
+    course_generator::literacy::LiteracyLessonType, BasicAsset, ExerciseAsset, ExerciseManifest,
 };
 
 /// Prints the markdown file at the given path to the terminal.
@@ -20,19 +20,23 @@ pub fn print_markdown(path: &str) -> Result<()> {
 /// Randomly samples five values from the given list of strings.
 fn sample(values: &[String]) -> Vec<String> {
     let mut sampled = values.to_vec();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     sampled.shuffle(&mut rng);
     sampled.truncate(5);
     sampled
 }
 
 /// Prints a literacy asset to the terminal.
-pub fn print_literacy(lesson_type: &LiteracyLesson, examples: &[String], exceptions: &[String]) {
+pub fn print_literacy(
+    lesson_type: &LiteracyLessonType,
+    examples: &[String],
+    exceptions: &[String],
+) {
     let sampled_examples = sample(examples);
     let sampled_exceptions = sample(exceptions);
     match lesson_type {
-        LiteracyLesson::Reading => println!("Lesson type: Reading"),
-        LiteracyLesson::Dictation => println!("Lesson type: Dictation"),
+        LiteracyLessonType::Reading => println!("Lesson type: Reading"),
+        LiteracyLessonType::Dictation => println!("Lesson type: Dictation"),
     }
     if !sampled_examples.is_empty() {
         println!("Examples:");

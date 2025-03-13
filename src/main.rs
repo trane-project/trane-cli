@@ -10,6 +10,7 @@
 #![allow(clippy::cast_sign_loss)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::too_many_lines)]
+#![allow(clippy::needless_raw_string_hashes)]
 
 mod app;
 mod built_info {
@@ -71,7 +72,7 @@ fn main() -> Result<()> {
                 let line = line.trim();
 
                 // Ignore comments and empty lines.
-                if line.starts_with('#') || line.eq("") {
+                if line.starts_with('#') || line.is_empty() {
                     continue;
                 };
 

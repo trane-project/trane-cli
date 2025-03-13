@@ -13,13 +13,15 @@ use trane::{
         },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
+    exercise_scorer::{ExerciseScorer, ExponentialDecayScorer},
     filter_manager::FilterManager,
     graph::UnitGraph,
+    practice_rewards::PracticeRewards,
     practice_stats::PracticeStats,
     repository_manager::RepositoryManager,
     review_list::ReviewList,
+    reward_scorer::{RewardScorer, WeightedRewardScorer},
     scheduler::ExerciseScheduler,
-    scorer::{ExerciseScorer, SimpleScorer},
     study_session_manager::StudySessionManager,
     transcription_downloader::TranscriptionDownloader,
     Trane,
@@ -318,8 +320,8 @@ impl TraneApp {
     pub fn filter_metadata(
         &mut self,
         filter_op: FilterOp,
-        lesson_metadata: &Option<Vec<KeyValue>>,
-        course_metadata: &Option<Vec<KeyValue>>,
+        lesson_metadata: Option<&Vec<KeyValue>>,
+        course_metadata: Option<&Vec<KeyValue>>,
     ) {
         let basic_lesson_filters: Vec<_> = lesson_metadata
             .as_ref()
@@ -871,29 +873,72 @@ impl TraneApp {
     }
 
     /// Shows the most recent scores for the given exercise.
-    pub fn show_scores(&self, exercise_id: Ustr, num_scores: usize) -> Result<()> {
+    pub fn show_scores(
+        &self,
+        exercise_id: Ustr,
+        num_scores: usize,
+        num_rewards: usize,
+    ) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        // Retrieve and validate the exercise ID.
+        // Retrieve and validate the exercise, course, and lesson IDs.
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
         if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(exercise_id) {
         } else {
             bail!("Unit with ID {} is not a valid exercise", exercise_id);
         }
+        let lesson_id = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_exercise_lesson(exercise_id)
+            .ok_or_else(|| anyhow!("no lesson for exercise with ID {}", exercise_id))?;
+        let course_id = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_lesson_course(lesson_id)
+            .ok_or_else(|| anyhow!("no course for lesson with ID {}", lesson_id))?;
 
-        // Retrieve the scores and compute the aggregate score.
+        // Retrieve the scores and rewards and compute the aggregate score.
         let scores = self
             .trane
             .as_ref()
             .unwrap()
             .get_scores(exercise_id, num_scores)?;
-        let simple_scorer = SimpleScorer {};
-        let aggregate_score = simple_scorer.score(&scores)?;
+        let lesson_rewards = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_rewards(lesson_id, num_rewards)
+            .unwrap_or_default();
+        let course_rewards = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_rewards(course_id, num_rewards)
+            .unwrap_or_default();
+
+        let decay_scorer = ExponentialDecayScorer {};
+        let reward_scorer = WeightedRewardScorer {};
+        let score = decay_scorer.score(&scores)?;
+        let reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
+        let total_score = if score > 0.0 {
+            (score + reward).clamp(0.0, 5.0)
+        } else {
+            0.0
+        };
 
         // Print the scores.
         println!("Scores for exercise {exercise_id}:");
-        println!("Aggregate score: {aggregate_score:.2}");
         println!();
+        println!("Note: Rewards are only applied to exercises with previous scores");
+        println!();
+        println!("Score: {score:.2}");
+        println!("Reward: {reward:.2}");
+        println!("Final score: {total_score:.2}");
+        println!();
+        println!("Raw scores:");
         println!("{:<25} {:>6}", "Date", "Score");
         for score in scores {
             if let Some(dt) = Local.timestamp_opt(score.timestamp, 0).earliest() {
