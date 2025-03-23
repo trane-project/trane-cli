@@ -3,7 +3,7 @@
 //! this mod work for Completer and Prompt.
 
 use rustyline::completion::FilenameCompleter;
-use rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
+use rustyline::highlight::{CmdKind, Highlighter, MatchingBracketHighlighter};
 use rustyline::hint::HistoryHinter;
 use rustyline::validate::MatchingBracketValidator;
 use rustyline_derive::{Completer, Helper, Hinter, Validator};
@@ -46,8 +46,8 @@ impl Highlighter for MyHelper {
     }
 
     /// Custom logic to highlight the current character.
-    fn highlight_char(&self, line: &str, pos: usize, force: bool) -> bool {
-        self.highlighter.highlight_char(line, pos, force)
+    fn highlight_char(&self, line: &str, pos: usize, kind: CmdKind) -> bool {
+        self.highlighter.highlight_char(line, pos, kind)
     }
 }
 

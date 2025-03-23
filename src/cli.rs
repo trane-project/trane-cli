@@ -481,6 +481,10 @@ pub(crate) enum Subcommands {
         #[clap(help = "The number of scores to show")]
         #[clap(long, short, default_value = "20")]
         num_scores: usize,
+
+        #[clap(help = "The number of rewards to show")]
+        #[clap(long, short, default_value = "5")]
+        num_rewards: usize,
     },
 
     #[clap(about = "Subcommands for manipulating the exercise scheduler")]
@@ -611,7 +615,11 @@ impl TraneCli {
                         (true, _) => FilterOp::Any,
                         (false, false) | (_, true) => FilterOp::All,
                     };
-                    app.filter_metadata(filter_op, &lesson_metadata, &course_metadata);
+                    app.filter_metadata(
+                        filter_op,
+                        lesson_metadata.as_ref(),
+                        course_metadata.as_ref(),
+                    );
                     println!("Set the unit filter to only show exercises with the given metadata");
                     Ok(true)
                 }
@@ -782,8 +790,9 @@ impl TraneCli {
             Subcommands::Scores {
                 exercise_id,
                 num_scores,
+                num_rewards,
             } => {
-                app.show_scores(exercise_id, num_scores)?;
+                app.show_scores(exercise_id, num_scores, num_rewards)?;
                 Ok(true)
             }
 
