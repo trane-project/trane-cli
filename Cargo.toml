@@ -23,10 +23,10 @@ rustyline = "15.0.0"
 rustyline-derive = "0.11.0"
 serde_json = "1.0.120"
 termimad = "0.31.2"
-# trane = "0.22.0"
+trane = "0.23.0"
 ustr = { version = "1.0.0", features = ["serde"] }
 # Commented out for use in local development.
-trane = { path = "../trane" }
+# trane = { path = "../trane" }
 
 [build-dependencies]
 built = { version = "0.7.7", features = ["chrono", "dependency-tree", "git2", "semver"] }
