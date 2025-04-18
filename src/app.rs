@@ -987,7 +987,7 @@ impl TraneApp {
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
-        };
+        }
         Ok(())
     }
 
