@@ -74,7 +74,7 @@ fn main() -> Result<()> {
                 // Ignore comments and empty lines.
                 if line.starts_with('#') || line.is_empty() {
                     continue;
-                };
+                }
 
                 // Split the line into a vector of arguments. Add an initial argument with value
                 // "trane" if the line doesn't have it, so the parser can recognize the input.
@@ -106,7 +106,6 @@ fn main() -> Result<()> {
             }
             Err(ReadlineError::Interrupted) => {
                 println!("Press CTRL-D or use the quit command to exit");
-                continue;
             }
             Err(ReadlineError::Eof) => {
                 // Submit the current score before exiting. Ignore the error because it's not
