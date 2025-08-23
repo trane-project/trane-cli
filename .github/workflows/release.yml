@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false # don't fail other jobs if one fails
       matrix:
-        build: [x86_64-linux, aarch64-linux, aarch64-apple, x86_64-windows]
+        build: [x86_64-linux, aarch64-linux, x86_64-apple, aarch64-apple, x86_64-windows]
         include:
         - build: x86_64-linux
           os: ubuntu-latest
@@ -28,6 +28,10 @@ jobs:
           rust: stable
           target: aarch64-unknown-linux-gnu
           cargo_cmd: cross
+        - build: x86_64-apple
+          os: macos-13
+          rust: stable
+          target: x86_64-apple-darwin
         - build: aarch64-apple
           os: macos-latest
           rust: stable
@@ -62,24 +66,11 @@ jobs:
       - name: Build release binary
         run: ${{ matrix.cargo_cmd }} build --release --locked --target ${{ matrix.target }}
 
-      - name: Strip release binary (linux and macos)
-        if: matrix.build == 'x86_64-linux' || matrix.build == 'x86_64-macos'
-        run: strip "target/${{ matrix.target }}/release/$BIN_NAME"
-
-      - name: Strip release binary (arm)
-        if: matrix.build == 'aarch64-linux'
-        run: |
-          docker run --rm -v \
-            "$PWD/target:/target:Z" \
-            rustembedded/cross:${{ matrix.target }} \
-            aarch64-linux-gnu-strip \
-            /target/${{ matrix.target }}/release/$BIN_NAME
-
-      - name: Build archive
+      - name: Build upload directory
         shell: bash
         run: |
           mkdir dist
-          if [ "${{ matrix.os }}" = "windows-2019" ]; then
+          if [[ "${{ matrix.os }}" == *windows* ]]; then
             cp "target/${{ matrix.target }}/release/$BIN_NAME.exe" "dist/"
           else
             cp "target/${{ matrix.target }}/release/$BIN_NAME" "dist/"
