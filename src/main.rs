@@ -11,6 +11,7 @@
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::needless_raw_string_hashes)]
+#![allow(clippy::doc_markdown)]
 
 mod app;
 mod built_info {
