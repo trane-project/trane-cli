@@ -267,10 +267,10 @@ impl TraneApp {
     }
 
     /// Exports the dependent graph as a DOT file to the given path.
-    pub fn export_graph(&self, path: &Path) -> Result<()> {
+    pub fn export_graph(&self, path: &Path, courses_only: bool) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        let dot_graph = self.trane.as_ref().unwrap().generate_dot_graph();
+        let dot_graph = self.trane.as_ref().unwrap().generate_dot_graph(courses_only);
         let mut file = File::create(path)?;
         file.write_all(dot_graph.as_bytes())?;
         Ok(())

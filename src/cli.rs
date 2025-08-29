@@ -77,6 +77,11 @@ pub(crate) enum DebugSubcommands {
     ExportGraph {
         #[clap(help = "The path to the DOT file")]
         path: String,
+
+        #[clap(help = "Whether to include only the courses in the graph")]
+        #[clap(default_value = "false")]
+        #[clap(long, short)]
+        courses_only: bool,
     },
 
     #[clap(about = "Trims the storage by removing all trials except for the most recent ones")]
@@ -561,8 +566,8 @@ impl TraneCli {
             }
 
             Subcommands::Debug(subcommand) => match subcommand {
-                DebugSubcommands::ExportGraph { path } => {
-                    app.export_graph(Path::new(&path))?;
+                DebugSubcommands::ExportGraph { path, courses_only } => {
+                    app.export_graph(Path::new(&path), courses_only)?;
                     println!("Exported graph to {path}");
                     Ok(true)
                 }
