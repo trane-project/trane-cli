@@ -1,7 +1,7 @@
 //! A module containing functions to download and manage courses from git repositories, which is
 //! meant to simplify the process of adding new courses to Trane.
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 use std::{
     collections::HashMap,
@@ -10,9 +10,7 @@ use std::{
 };
 use url::Url;
 
-use trane::{
-    data::RepositoryMetadata, error::RepositoryManagerError, TRANE_CONFIG_DIR_PATH,
-};
+use trane::{data::RepositoryMetadata, error::RepositoryManagerError, TRANE_CONFIG_DIR_PATH};
 
 // The name of the directory where repositories will be downloaded.
 const DOWNLOAD_DIRECTORY: &str = "managed_courses";
@@ -323,13 +321,11 @@ mod test {
         let mut manager = LocalRepositoryManager::new(library_root.path())?;
         manager.add_repo(REPO_URL, Some("custom-id".to_string()))?;
         assert!(manager.repositories.contains_key("custom-id"));
-        assert!(
-            library_root
-                .path()
-                .join(DOWNLOAD_DIRECTORY)
-                .join("custom-id")
-                .exists()
-        );
+        assert!(library_root
+            .path()
+            .join(DOWNLOAD_DIRECTORY)
+            .join("custom-id")
+            .exists());
         let metadata_path = library_root
             .path()
             .join(TRANE_CONFIG_DIR_PATH)
@@ -346,11 +342,9 @@ mod test {
         let library_root = tempfile::tempdir()?;
         setup_directories(library_root.path())?;
         let mut manager = LocalRepositoryManager::new(library_root.path())?;
-        assert!(
-            manager
-                .add_repo("git@github.com:trane-project/trane-leetcode.git", None)
-                .is_err()
-        );
+        assert!(manager
+            .add_repo("git@github.com:trane-project/trane-leetcode.git", None)
+            .is_err());
         Ok(())
     }
 
@@ -404,21 +398,17 @@ mod test {
         manager.add_repo(REPO_URL, None)?;
         manager.remove_repo(REPO_ID)?;
         assert!(!manager.repositories.contains_key(REPO_ID));
-        assert!(
-            !library_root
-                .path()
-                .join(DOWNLOAD_DIRECTORY)
-                .join(REPO_ID)
-                .exists()
-        );
-        assert!(
-            !library_root
-                .path()
-                .join(TRANE_CONFIG_DIR_PATH)
-                .join(REPOSITORY_DIRECTORY)
-                .join(format!("{REPO_ID}.json"))
-                .exists()
-        );
+        assert!(!library_root
+            .path()
+            .join(DOWNLOAD_DIRECTORY)
+            .join(REPO_ID)
+            .exists());
+        assert!(!library_root
+            .path()
+            .join(TRANE_CONFIG_DIR_PATH)
+            .join(REPOSITORY_DIRECTORY)
+            .join(format!("{REPO_ID}.json"))
+            .exists());
         Ok(())
     }
 

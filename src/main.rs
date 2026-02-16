@@ -22,6 +22,7 @@ mod cli;
 mod display;
 mod helper;
 mod repository_manager;
+mod transcription_downloader;
 
 use anyhow::Result;
 use app::TraneApp;

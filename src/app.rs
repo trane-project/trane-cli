@@ -18,17 +18,18 @@ use trane::{
     graph::UnitGraph,
     practice_rewards::PracticeRewards,
     practice_stats::PracticeStats,
+    preferences_manager::PreferencesManager,
     review_list::ReviewList,
     reward_scorer::{RewardScorer, WeightedRewardScorer},
     scheduler::ExerciseScheduler,
     study_session_manager::StudySessionManager,
-    transcription_downloader::TranscriptionDownloader,
     Trane,
 };
 use ustr::Ustr;
 
 use crate::display::{DisplayAnswer, DisplayAsset, DisplayExercise};
 use crate::repository_manager::{LocalRepositoryManager, RepositoryManager};
+use crate::transcription_downloader::LocalTranscriptionDownloader;
 use crate::{built_info, cli::KeyValue};
 
 /// Stores the app and its configuration.
@@ -39,6 +40,9 @@ pub(crate) struct TraneApp {
 
     /// The object managing git repositories containing courses.
     repo_manager: Option<LocalRepositoryManager>,
+
+    /// The object managing transcription asset downloads.
+    transcription_downloader: Option<LocalTranscriptionDownloader>,
 
     /// The filter used to select exercises.
     filter: Option<UnitFilter>,
@@ -710,6 +714,15 @@ impl TraneApp {
         let repo_manager = LocalRepositoryManager::new(library_root)?;
         self.trane = Some(trane);
         self.repo_manager = Some(repo_manager);
+        let transcription_preferences = self
+            .trane
+            .as_ref()
+            .and_then(|trane| trane.get_user_preferences().ok())
+            .and_then(|preferences| preferences.transcription)
+            .unwrap_or_default();
+        self.transcription_downloader = Some(LocalTranscriptionDownloader {
+            preferences: transcription_preferences,
+        });
         self.batch.drain(..);
         self.batch_index = 0;
         Ok(())
@@ -1277,14 +1290,18 @@ impl TraneApp {
 
     /// Prints the path to the transcription asset for the given exercise.
     pub fn transcription_path(&self, exercise_id: Ustr) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
+        let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
 
-        let trane = self.trane.as_ref().unwrap();
-        let path = trane.transcription_download_path(exercise_id);
+        let path = downloader.transcription_download_path(exercise_id, &get_exercise_manifest);
         if let Some(path) = path {
             println!("Transcription asset download path: {}", path.display());
         }
-        let alias_path = trane.transcription_download_path_alias(exercise_id);
+        let alias_path =
+            downloader.transcription_download_path_alias(exercise_id, &get_exercise_manifest);
         if let Some(alias_path) = alias_path {
             println!(
                 "Transcription asset download path alias: {}",
@@ -1297,13 +1314,13 @@ impl TraneApp {
     /// Downloads the transcription asset from the given exercise to the specified directory in the
     /// user preferences.
     pub fn download_transcription_asset(&self, exercise_id: Ustr, redownload: bool) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        self.trane
-            .as_ref()
-            .unwrap()
-            .download_transcription_asset(exercise_id, redownload)?;
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+
+        downloader.download_transcription_asset(exercise_id, redownload, &get_exercise_manifest)?;
         println!("Transcription asset for exercise {exercise_id} downloaded");
         println!();
         self.transcription_path(exercise_id)?;
@@ -1312,11 +1329,14 @@ impl TraneApp {
 
     /// Prints whether the transcription asset for the given exercise has been downloaded.
     pub fn is_transcription_asset_downloaded(&self, exercise_id: Ustr) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let trane = self.trane.as_ref().unwrap();
-        let is_downloaded = trane.is_transcription_asset_downloaded(exercise_id);
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+
+        let is_downloaded =
+            downloader.is_transcription_asset_downloaded(exercise_id, &get_exercise_manifest);
         if is_downloaded {
             println!("Transcription for exercise {exercise_id} is downloaded");
             println!();
@@ -1325,5 +1345,13 @@ impl TraneApp {
             println!("Transcription for exercise {exercise_id} is not downloaded");
         }
         Ok(())
+    }
+
+    /// Returns the open library and transcription downloader used by transcription commands.
+    fn transcription_context(&self) -> Option<(&Trane, &LocalTranscriptionDownloader)> {
+        Some((
+            self.trane.as_ref()?,
+            self.transcription_downloader.as_ref()?,
+        ))
     }
 }
