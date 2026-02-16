@@ -2266,13 +2266,18 @@ dependencies = [
  "built",
  "chrono",
  "clap",
+ "fs_extra",
+ "git2",
  "indoc",
  "rand 0.9.2",
  "rustyline",
  "rustyline-derive",
+ "serde",
  "serde_json",
+ "tempfile",
  "termimad",
  "trane",
+ "url",
  "ustr",
 ]
 

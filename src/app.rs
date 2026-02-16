@@ -18,7 +18,6 @@ use trane::{
     graph::UnitGraph,
     practice_rewards::PracticeRewards,
     practice_stats::PracticeStats,
-    repository_manager::RepositoryManager,
     review_list::ReviewList,
     reward_scorer::{RewardScorer, WeightedRewardScorer},
     scheduler::ExerciseScheduler,
@@ -29,6 +28,7 @@ use trane::{
 use ustr::Ustr;
 
 use crate::display::{DisplayAnswer, DisplayAsset, DisplayExercise};
+use crate::repository_manager::{LocalRepositoryManager, RepositoryManager};
 use crate::{built_info, cli::KeyValue};
 
 /// Stores the app and its configuration.
@@ -36,6 +36,9 @@ use crate::{built_info, cli::KeyValue};
 pub(crate) struct TraneApp {
     /// The instance of the Trane library.
     trane: Option<Trane>,
+
+    /// The object managing git repositories containing courses.
+    repo_manager: Option<LocalRepositoryManager>,
 
     /// The filter used to select exercises.
     filter: Option<UnitFilter>,
@@ -702,8 +705,11 @@ impl TraneApp {
 
     /// Opens the course library at the given path.
     pub fn open_library(&mut self, library_root: &str) -> Result<()> {
-        let trane = Trane::new_local(&std::env::current_dir()?, Path::new(library_root))?;
+        let library_root = Path::new(library_root);
+        let trane = Trane::new_local(&std::env::current_dir()?, library_root)?;
+        let repo_manager = LocalRepositoryManager::new(library_root)?;
         self.trane = Some(trane);
+        self.repo_manager = Some(repo_manager);
         self.batch.drain(..);
         self.batch_index = 0;
         Ok(())
@@ -775,12 +781,13 @@ impl TraneApp {
 
     /// Shows the currently set filter.
     pub fn show_filter(&self) {
-        if self.filter.is_none() {
+        let Some(filter) = self.filter.as_ref() else {
             println!("No filter is set");
-        } else {
-            println!("Filter:");
-            println!("{:#?}", self.filter.as_ref().unwrap());
-        }
+            return;
+        };
+
+        println!("Filter:");
+        println!("{filter:#?}");
     }
 
     /// Shows the course instructions for the given course.
@@ -1049,21 +1056,31 @@ impl TraneApp {
     /// Adds a new repository to the Trane instance.
     pub fn add_repo(&mut self, url: &str, repo_id: Option<String>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().add_repo(url, repo_id)?;
+        self.repo_manager
+            .as_mut()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .add_repo(url, repo_id)?;
         Ok(())
     }
 
     /// Removes the given repository from the Trane instance.
     pub fn remove_repo(&mut self, repo_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().remove_repo(repo_id)?;
+        self.repo_manager
+            .as_mut()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .remove_repo(repo_id)?;
         Ok(())
     }
 
     /// Lists all the repositories managed by the Trane instance.
     pub fn list_repos(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        let repos = self.trane.as_ref().unwrap().list_repos();
+        let repos = self
+            .repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .list_repos();
         if repos.is_empty() {
             println!("No repositories are managed by Trane");
             return Ok(());
@@ -1079,14 +1096,20 @@ impl TraneApp {
     /// Updates the given repository.
     pub fn update_repo(&mut self, repo_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().update_repo(repo_id)?;
+        self.repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .update_repo(repo_id)?;
         Ok(())
     }
 
     /// Updates all the repositories managed by the Trane instance.
     pub fn update_all_repos(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().update_all_repos()?;
+        self.repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .update_all_repos()?;
         Ok(())
     }
 
@@ -1129,11 +1152,13 @@ impl TraneApp {
         println!("Review list:");
         println!("{:<10} {:<50}", "Unit Type", "Unit ID");
         for unit_id in entries {
-            let unit_type = self.get_unit_type(unit_id);
-            if unit_type.is_err() {
-                println!("{:<10} {:<50}", "Unknown", unit_id.as_str());
-            } else {
-                println!("{:<10} {:<50}", unit_type.unwrap(), unit_id.as_str());
+            match self.get_unit_type(unit_id) {
+                Ok(unit_type) => {
+                    println!("{:<10} {:<50}", unit_type, unit_id.as_str());
+                }
+                Err(_) => {
+                    println!("{:<10} {:<50}", "Unknown", unit_id.as_str());
+                }
             }
         }
         Ok(())
