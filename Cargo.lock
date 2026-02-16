@@ -1229,16 +1229,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08ab2867e3eeeca90e844d1940eab391c9dc5228783db2ed999acbc0a9ed375a"
 
 [[package]]
-name = "mantra-miner"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45cb3048a51f3fb7066acc6383678f462176057b346a57ed1258fc43e4023899"
-dependencies = [
- "anyhow",
- "parking_lot",
-]
-
-[[package]]
 name = "measure_time"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2240,8 +2230,6 @@ checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 [[package]]
 name = "trane"
 version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0375c0cf854db2c0af69ad0234c7415c062eda928e7a596f9dca5315bfcc8d3"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2251,7 +2239,6 @@ dependencies = [
  "git2",
  "hex",
  "indoc",
- "mantra-miner",
  "parking_lot",
  "r2d2",
  "r2d2_sqlite",

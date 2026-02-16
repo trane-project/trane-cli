@@ -13,7 +13,7 @@ use trane::{
         },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
-    exercise_scorer::{ExerciseScorer, ExponentialDecayScorer},
+    exercise_scorer::{ExerciseScorer, PowerLawScorer},
     filter_manager::FilterManager,
     graph::UnitGraph,
     practice_rewards::PracticeRewards,
@@ -863,19 +863,6 @@ impl TraneApp {
         }
     }
 
-    /// Shows the current count of Tara Sarasvati mantras. Her mantra is "recited" by the
-    /// `mantra-mining` library in the background as a symbolic way in which users can contribute
-    /// back to the maintainers of this program. See more information in the README of the
-    /// `mantra-mining` library.
-    pub fn show_mantra_count(&self) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-        println!(
-            "Mantra count: {}",
-            self.trane.as_ref().unwrap().mantra_count()
-        );
-        Ok(())
-    }
-
     /// Shows the most recent scores for the given exercise.
     pub fn show_scores(
         &self,
@@ -885,7 +872,7 @@ impl TraneApp {
     ) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        // Retrieve and validate the exercise, course, and lesson IDs.
+        // Retrieve and validate information about the exercise.
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
         if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(exercise_id) {
         } else {
@@ -903,9 +890,16 @@ impl TraneApp {
             .unwrap()
             .get_lesson_course(lesson_id)
             .ok_or_else(|| anyhow!("no course for lesson with ID {}", lesson_id))?;
+        let exercise_type = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_exercise_manifest(exercise_id)
+            .ok_or_else(|| anyhow!("no manifest for exercise with ID {}", exercise_id))?
+            .exercise_type;
 
         // Retrieve the scores and rewards and compute the aggregate score.
-        let scores = self
+        let previous_trials = self
             .trane
             .as_ref()
             .unwrap()
@@ -923,15 +917,18 @@ impl TraneApp {
             .get_rewards(course_id, num_rewards)
             .unwrap_or_default();
 
-        let decay_scorer = ExponentialDecayScorer {};
+        // Compute the score, reward, and decide if it needs to be applied.
+        let scorer = PowerLawScorer {};
         let reward_scorer = WeightedRewardScorer {};
-        let score = decay_scorer.score(&scores)?;
-        let reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
-        let total_score = if score > 0.0 {
-            (score + reward).clamp(0.0, 5.0)
+        let score = scorer.score(exercise_type, &previous_trials)?;
+        let mut reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
+        let mut total_score = score;
+        let apply_reward = reward_scorer.apply_reward(reward, &previous_trials);
+        if apply_reward {
+            total_score += reward;
         } else {
-            0.0
-        };
+            reward = 0.0;
+        }
 
         // Print the scores.
         println!("Scores for exercise {exercise_id}:");
@@ -944,7 +941,7 @@ impl TraneApp {
         println!();
         println!("Raw scores:");
         println!("{:<25} {:>6}", "Date", "Score");
-        for score in scores {
+        for score in previous_trials {
             if let Some(dt) = Local.timestamp_opt(score.timestamp, 0).earliest() {
                 println!(
                     "{:<25} {:>6}",

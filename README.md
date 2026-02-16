@@ -147,8 +147,6 @@ SUBCOMMANDS:
     help            Print this message or the help of the given subcommand(s)
     instructions    Subcommands for showing course and lesson instructions
     list            Subcommands for listing course, lesson, and exercise IDs
-    mantra-count    Show the number of Tara Sarasvati mantras recited in the background during
-                        the current session
     material        Subcommands for showing course and lesson materials
     next            Submits the score for the current exercise and proceeds to the next
     open            Open the course library at the given location
