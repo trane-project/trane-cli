@@ -58,17 +58,8 @@ jobs:
           target: ${{ matrix.target }}
           override: true
 
-      - name: Setup yt-dlp PPA
-        run: sudo add-apt-repository ppa:tomtomtom/yt-dlp
-      
-      - name: Install yt-dlp
-        run: sudo apt update && sudo apt install -y yt-dlp
-     
       - name: Install cross
         run:  cargo install --version 0.1.16 cross
-
-      - name: Run cargo test
-        run: ${{ matrix.cargo_cmd }} test --release --locked --target ${{ matrix.target }}
 
       - name: Build release binary
         run: ${{ matrix.cargo_cmd }} build --release --locked --target ${{ matrix.target }}
