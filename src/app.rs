@@ -207,11 +207,7 @@ impl TraneApp {
     /// Adds the unit with the given ID to the blacklist.
     pub fn blacklist_unit(&mut self, unit_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        ensure!(
-            self.unit_exists(unit_id)?,
-            "unit {} does not exist",
-            unit_id
-        );
+        ensure!(self.unit_exists(unit_id)?, "unit {unit_id} does not exist");
 
         self.trane.as_mut().unwrap().add_to_blacklist(unit_id)?;
         self.reset_batch();
@@ -300,7 +296,7 @@ impl TraneApp {
         for course_id in &course_ids {
             let unit_type = self.get_unit_type(*course_id)?;
             if unit_type != UnitType::Course {
-                bail!("Unit with ID {} is not a course", course_id);
+                bail!("Unit with ID {course_id} is not a course");
             }
         }
 
@@ -317,7 +313,7 @@ impl TraneApp {
         for lesson_id in &lesson_ids {
             let unit_type = self.get_unit_type(*lesson_id)?;
             if unit_type != UnitType::Lesson {
-                bail!("Unit with ID {} is not a lesson", lesson_id);
+                bail!("Unit with ID {lesson_id} is not a lesson");
             }
         }
 
@@ -413,7 +409,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_unit_type(unit_id)
-            .ok_or_else(|| anyhow!("missing type for unit with ID {}", unit_id))
+            .ok_or_else(|| anyhow!("missing type for unit with ID {unit_id}"))
     }
 
     /// Prints the list of all the saved unit filters.
@@ -738,7 +734,7 @@ impl TraneApp {
             3 => Ok(MasteryScore::Three),
             4 => Ok(MasteryScore::Four),
             5 => Ok(MasteryScore::Five),
-            _ => Err(anyhow!("invalid score {}", score)),
+            _ => Err(anyhow!("invalid score {score}")),
         }?;
         self.current_score = Some(mastery_score);
         Ok(())
@@ -754,7 +750,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_filter(filter_id)
-            .ok_or_else(|| anyhow!("no filter with ID {}", filter_id))?;
+            .ok_or_else(|| anyhow!("no filter with ID {filter_id}"))?;
         self.filter = Some(saved_filter.filter);
         self.study_session = None;
         self.reset_batch();
@@ -813,7 +809,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(course_id)
-            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
         match manifest.course_instructions {
             None => {
                 println!("Course has no instructions");
@@ -833,7 +829,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(lesson_id)
-            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
         match manifest.lesson_instructions {
             None => {
                 println!("Lesson has no instructions");
@@ -853,7 +849,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(course_id)
-            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
         match manifest.course_material {
             None => {
                 println!("Course has no material");
@@ -873,7 +869,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(lesson_id)
-            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
         match manifest.lesson_material {
             None => {
                 println!("Lesson has no material");
@@ -896,26 +892,26 @@ impl TraneApp {
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
         if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(exercise_id) {
         } else {
-            bail!("Unit with ID {} is not a valid exercise", exercise_id);
+            bail!("Unit with ID {exercise_id} is not a valid exercise");
         }
         let lesson_id = self
             .trane
             .as_ref()
             .unwrap()
             .get_exercise_lesson(exercise_id)
-            .ok_or_else(|| anyhow!("no lesson for exercise with ID {}", exercise_id))?;
+            .ok_or_else(|| anyhow!("no lesson for exercise with ID {exercise_id}"))?;
         let course_id = self
             .trane
             .as_ref()
             .unwrap()
             .get_lesson_course(lesson_id)
-            .ok_or_else(|| anyhow!("no course for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no course for lesson with ID {lesson_id}"))?;
         let exercise_type = self
             .trane
             .as_ref()
             .unwrap()
             .get_exercise_manifest(exercise_id)
-            .ok_or_else(|| anyhow!("no manifest for exercise with ID {}", exercise_id))?
+            .ok_or_else(|| anyhow!("no manifest for exercise with ID {exercise_id}"))?
             .exercise_type;
 
         // Retrieve the scores and rewards and compute the aggregate score.
@@ -984,7 +980,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_exercise_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for exercise {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for exercise {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -994,7 +990,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_lesson_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for lesson {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for lesson {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -1004,7 +1000,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_course_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for course {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for course {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -1129,11 +1125,7 @@ impl TraneApp {
     /// Adds the given unit to the review list.
     pub fn add_to_review_list(&mut self, unit_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        ensure!(
-            self.unit_exists(unit_id)?,
-            "unit {} does not exist",
-            unit_id
-        );
+        ensure!(self.unit_exists(unit_id)?, "unit {unit_id} does not exist");
 
         self.trane.as_mut().unwrap().add_to_review_list(unit_id)?;
         self.reset_batch();
@@ -1268,7 +1260,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_study_session(session_id)
-            .ok_or_else(|| anyhow!("no study session with ID {}", session_id))?;
+            .ok_or_else(|| anyhow!("no study session with ID {session_id}"))?;
         self.filter = None;
         self.study_session = Some(StudySessionData {
             start_time: Utc::now(),

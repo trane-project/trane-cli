@@ -274,7 +274,7 @@ mod test {
     #[test]
     fn test_is_downloaded_no_link() {
         let downloader = LocalTranscriptionDownloader {
-            preferences: Default::default(),
+            preferences: TranscriptionPreferences::default(),
         };
         let resolver = build_resolver(None);
         assert!(!downloader.is_transcription_asset_downloaded(Ustr::from("exercise"), &resolver));
@@ -284,7 +284,7 @@ mod test {
     #[test]
     fn test_is_downloaded_no_download() {
         let downloader = LocalTranscriptionDownloader {
-            preferences: Default::default(),
+            preferences: TranscriptionPreferences::default(),
         };
         let resolver = build_resolver(Some(TranscriptionLink::YouTube(YT_LINK.into())));
         assert!(!downloader.is_transcription_asset_downloaded(Ustr::from("exercise"), &resolver));
