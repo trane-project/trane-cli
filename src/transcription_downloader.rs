@@ -222,7 +222,7 @@ mod test {
     const YT_LINK: &str = "https://www.youtube.com/watch?v=p4LgzLjF4xE";
 
     // A local copy of the file above to avoid using the network in tests.
-    const LOCAL_FILE: &str = "../trane/testdata/test_audio.m4a";
+    const LOCAL_FILE: &str = "./testdata/test_audio.m4a";
 
     fn build_manifest(link: Option<TranscriptionLink>) -> ExerciseManifest {
         ExerciseManifest {
