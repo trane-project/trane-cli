@@ -13,22 +13,23 @@ use trane::{
         },
         ExerciseManifest, MasteryScore, SchedulerOptions, UnitType,
     },
-    exercise_scorer::{ExerciseScorer, ExponentialDecayScorer},
+    exercise_scorer::{ExerciseScorer, PowerLawScorer},
     filter_manager::FilterManager,
     graph::UnitGraph,
     practice_rewards::PracticeRewards,
     practice_stats::PracticeStats,
-    repository_manager::RepositoryManager,
+    preferences_manager::PreferencesManager,
     review_list::ReviewList,
     reward_scorer::{RewardScorer, WeightedRewardScorer},
     scheduler::ExerciseScheduler,
     study_session_manager::StudySessionManager,
-    transcription_downloader::TranscriptionDownloader,
     Trane,
 };
 use ustr::Ustr;
 
 use crate::display::{DisplayAnswer, DisplayAsset, DisplayExercise};
+use crate::repository_manager::{LocalRepositoryManager, RepositoryManager};
+use crate::transcription_downloader::LocalTranscriptionDownloader;
 use crate::{built_info, cli::KeyValue};
 
 /// Stores the app and its configuration.
@@ -36,6 +37,12 @@ use crate::{built_info, cli::KeyValue};
 pub(crate) struct TraneApp {
     /// The instance of the Trane library.
     trane: Option<Trane>,
+
+    /// The object managing git repositories containing courses.
+    repo_manager: Option<LocalRepositoryManager>,
+
+    /// The object managing transcription asset downloads.
+    transcription_downloader: Option<LocalTranscriptionDownloader>,
 
     /// The filter used to select exercises.
     filter: Option<UnitFilter>,
@@ -200,11 +207,7 @@ impl TraneApp {
     /// Adds the unit with the given ID to the blacklist.
     pub fn blacklist_unit(&mut self, unit_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        ensure!(
-            self.unit_exists(unit_id)?,
-            "unit {} does not exist",
-            unit_id
-        );
+        ensure!(self.unit_exists(unit_id)?, "unit {unit_id} does not exist");
 
         self.trane.as_mut().unwrap().add_to_blacklist(unit_id)?;
         self.reset_batch();
@@ -293,7 +296,7 @@ impl TraneApp {
         for course_id in &course_ids {
             let unit_type = self.get_unit_type(*course_id)?;
             if unit_type != UnitType::Course {
-                bail!("Unit with ID {} is not a course", course_id);
+                bail!("Unit with ID {course_id} is not a course");
             }
         }
 
@@ -310,7 +313,7 @@ impl TraneApp {
         for lesson_id in &lesson_ids {
             let unit_type = self.get_unit_type(*lesson_id)?;
             if unit_type != UnitType::Lesson {
-                bail!("Unit with ID {} is not a lesson", lesson_id);
+                bail!("Unit with ID {lesson_id} is not a lesson");
             }
         }
 
@@ -406,7 +409,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_unit_type(unit_id)
-            .ok_or_else(|| anyhow!("missing type for unit with ID {}", unit_id))
+            .ok_or_else(|| anyhow!("missing type for unit with ID {unit_id}"))
     }
 
     /// Prints the list of all the saved unit filters.
@@ -702,8 +705,20 @@ impl TraneApp {
 
     /// Opens the course library at the given path.
     pub fn open_library(&mut self, library_root: &str) -> Result<()> {
-        let trane = Trane::new_local(&std::env::current_dir()?, Path::new(library_root))?;
+        let library_root = Path::new(library_root);
+        let trane = Trane::new_local(&std::env::current_dir()?, library_root)?;
+        let repo_manager = LocalRepositoryManager::new(library_root)?;
         self.trane = Some(trane);
+        self.repo_manager = Some(repo_manager);
+        let transcription_preferences = self
+            .trane
+            .as_ref()
+            .and_then(|trane| trane.get_user_preferences().ok())
+            .and_then(|preferences| preferences.transcription)
+            .unwrap_or_default();
+        self.transcription_downloader = Some(LocalTranscriptionDownloader {
+            preferences: transcription_preferences,
+        });
         self.batch.drain(..);
         self.batch_index = 0;
         Ok(())
@@ -719,7 +734,7 @@ impl TraneApp {
             3 => Ok(MasteryScore::Three),
             4 => Ok(MasteryScore::Four),
             5 => Ok(MasteryScore::Five),
-            _ => Err(anyhow!("invalid score {}", score)),
+            _ => Err(anyhow!("invalid score {score}")),
         }?;
         self.current_score = Some(mastery_score);
         Ok(())
@@ -735,7 +750,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_filter(filter_id)
-            .ok_or_else(|| anyhow!("no filter with ID {}", filter_id))?;
+            .ok_or_else(|| anyhow!("no filter with ID {filter_id}"))?;
         self.filter = Some(saved_filter.filter);
         self.study_session = None;
         self.reset_batch();
@@ -775,12 +790,13 @@ impl TraneApp {
 
     /// Shows the currently set filter.
     pub fn show_filter(&self) {
-        if self.filter.is_none() {
+        let Some(filter) = self.filter.as_ref() else {
             println!("No filter is set");
-        } else {
-            println!("Filter:");
-            println!("{:#?}", self.filter.as_ref().unwrap());
-        }
+            return;
+        };
+
+        println!("Filter:");
+        println!("{filter:#?}");
     }
 
     /// Shows the course instructions for the given course.
@@ -793,7 +809,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(course_id)
-            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
         match manifest.course_instructions {
             None => {
                 println!("Course has no instructions");
@@ -813,7 +829,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(lesson_id)
-            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
         match manifest.lesson_instructions {
             None => {
                 println!("Lesson has no instructions");
@@ -833,7 +849,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_course_manifest(course_id)
-            .ok_or_else(|| anyhow!("no manifest for course with ID {}", course_id))?;
+            .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
         match manifest.course_material {
             None => {
                 println!("Course has no material");
@@ -853,7 +869,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_lesson_manifest(lesson_id)
-            .ok_or_else(|| anyhow!("no manifest for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
         match manifest.lesson_material {
             None => {
                 println!("Lesson has no material");
@@ -861,19 +877,6 @@ impl TraneApp {
             }
             Some(material) => material.display_asset(),
         }
-    }
-
-    /// Shows the current count of Tara Sarasvati mantras. Her mantra is "recited" by the
-    /// `mantra-mining` library in the background as a symbolic way in which users can contribute
-    /// back to the maintainers of this program. See more information in the README of the
-    /// `mantra-mining` library.
-    pub fn show_mantra_count(&self) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-        println!(
-            "Mantra count: {}",
-            self.trane.as_ref().unwrap().mantra_count()
-        );
-        Ok(())
     }
 
     /// Shows the most recent scores for the given exercise.
@@ -885,27 +888,34 @@ impl TraneApp {
     ) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
-        // Retrieve and validate the exercise, course, and lesson IDs.
+        // Retrieve and validate information about the exercise.
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
         if let Some(UnitType::Exercise) = self.trane.as_ref().unwrap().get_unit_type(exercise_id) {
         } else {
-            bail!("Unit with ID {} is not a valid exercise", exercise_id);
+            bail!("Unit with ID {exercise_id} is not a valid exercise");
         }
         let lesson_id = self
             .trane
             .as_ref()
             .unwrap()
             .get_exercise_lesson(exercise_id)
-            .ok_or_else(|| anyhow!("no lesson for exercise with ID {}", exercise_id))?;
+            .ok_or_else(|| anyhow!("no lesson for exercise with ID {exercise_id}"))?;
         let course_id = self
             .trane
             .as_ref()
             .unwrap()
             .get_lesson_course(lesson_id)
-            .ok_or_else(|| anyhow!("no course for lesson with ID {}", lesson_id))?;
+            .ok_or_else(|| anyhow!("no course for lesson with ID {lesson_id}"))?;
+        let exercise_type = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_exercise_manifest(exercise_id)
+            .ok_or_else(|| anyhow!("no manifest for exercise with ID {exercise_id}"))?
+            .exercise_type;
 
         // Retrieve the scores and rewards and compute the aggregate score.
-        let scores = self
+        let previous_trials = self
             .trane
             .as_ref()
             .unwrap()
@@ -923,15 +933,18 @@ impl TraneApp {
             .get_rewards(course_id, num_rewards)
             .unwrap_or_default();
 
-        let decay_scorer = ExponentialDecayScorer {};
+        // Compute the score, reward, and decide if it needs to be applied.
+        let scorer = PowerLawScorer {};
         let reward_scorer = WeightedRewardScorer {};
-        let score = decay_scorer.score(&scores)?;
-        let reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
-        let total_score = if score > 0.0 {
-            (score + reward).clamp(0.0, 5.0)
+        let score = scorer.score(exercise_type, &previous_trials)?;
+        let mut reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
+        let mut total_score = score;
+        let apply_reward = reward_scorer.apply_reward(reward, &previous_trials);
+        if apply_reward {
+            total_score += reward;
         } else {
-            0.0
-        };
+            reward = 0.0;
+        }
 
         // Print the scores.
         println!("Scores for exercise {exercise_id}:");
@@ -944,7 +957,7 @@ impl TraneApp {
         println!();
         println!("Raw scores:");
         println!("{:<25} {:>6}", "Date", "Score");
-        for score in scores {
+        for score in previous_trials {
             if let Some(dt) = Local.timestamp_opt(score.timestamp, 0).earliest() {
                 println!(
                     "{:<25} {:>6}",
@@ -967,7 +980,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_exercise_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for exercise {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for exercise {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -977,7 +990,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_lesson_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for lesson {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for lesson {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -987,7 +1000,7 @@ impl TraneApp {
                     .as_ref()
                     .unwrap()
                     .get_course_manifest(unit_id)
-                    .ok_or_else(|| anyhow!("missing manifest for course {}", unit_id))?;
+                    .ok_or_else(|| anyhow!("missing manifest for course {unit_id}"))?;
                 println!("Unit manifest:");
                 println!("{manifest:#?}");
             }
@@ -1052,21 +1065,31 @@ impl TraneApp {
     /// Adds a new repository to the Trane instance.
     pub fn add_repo(&mut self, url: &str, repo_id: Option<String>) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().add_repo(url, repo_id)?;
+        self.repo_manager
+            .as_mut()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .add_repo(url, repo_id)?;
         Ok(())
     }
 
     /// Removes the given repository from the Trane instance.
     pub fn remove_repo(&mut self, repo_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().remove_repo(repo_id)?;
+        self.repo_manager
+            .as_mut()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .remove_repo(repo_id)?;
         Ok(())
     }
 
     /// Lists all the repositories managed by the Trane instance.
     pub fn list_repos(&self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        let repos = self.trane.as_ref().unwrap().list_repos();
+        let repos = self
+            .repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .list_repos();
         if repos.is_empty() {
             println!("No repositories are managed by Trane");
             return Ok(());
@@ -1082,25 +1105,27 @@ impl TraneApp {
     /// Updates the given repository.
     pub fn update_repo(&mut self, repo_id: &str) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().update_repo(repo_id)?;
+        self.repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .update_repo(repo_id)?;
         Ok(())
     }
 
     /// Updates all the repositories managed by the Trane instance.
     pub fn update_all_repos(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        self.trane.as_mut().unwrap().update_all_repos()?;
+        self.repo_manager
+            .as_ref()
+            .ok_or_else(|| anyhow!("repository manager unavailable"))?
+            .update_all_repos()?;
         Ok(())
     }
 
     /// Adds the given unit to the review list.
     pub fn add_to_review_list(&mut self, unit_id: Ustr) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
-        ensure!(
-            self.unit_exists(unit_id)?,
-            "unit {} does not exist",
-            unit_id
-        );
+        ensure!(self.unit_exists(unit_id)?, "unit {unit_id} does not exist");
 
         self.trane.as_mut().unwrap().add_to_review_list(unit_id)?;
         self.reset_batch();
@@ -1132,11 +1157,13 @@ impl TraneApp {
         println!("Review list:");
         println!("{:<10} {:<50}", "Unit Type", "Unit ID");
         for unit_id in entries {
-            let unit_type = self.get_unit_type(unit_id);
-            if unit_type.is_err() {
-                println!("{:<10} {:<50}", "Unknown", unit_id.as_str());
-            } else {
-                println!("{:<10} {:<50}", unit_type.unwrap(), unit_id.as_str());
+            match self.get_unit_type(unit_id) {
+                Ok(unit_type) => {
+                    println!("{:<10} {:<50}", unit_type, unit_id.as_str());
+                }
+                Err(_) => {
+                    println!("{:<10} {:<50}", "Unknown", unit_id.as_str());
+                }
             }
         }
         Ok(())
@@ -1233,7 +1260,7 @@ impl TraneApp {
             .as_ref()
             .unwrap()
             .get_study_session(session_id)
-            .ok_or_else(|| anyhow!("no study session with ID {}", session_id))?;
+            .ok_or_else(|| anyhow!("no study session with ID {session_id}"))?;
         self.filter = None;
         self.study_session = Some(StudySessionData {
             start_time: Utc::now(),
@@ -1255,14 +1282,18 @@ impl TraneApp {
 
     /// Prints the path to the transcription asset for the given exercise.
     pub fn transcription_path(&self, exercise_id: Ustr) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
+        let exercise_id = self.exercise_id_or_current(exercise_id)?;
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
 
-        let trane = self.trane.as_ref().unwrap();
-        let path = trane.transcription_download_path(exercise_id);
+        let path = downloader.transcription_download_path(exercise_id, &get_exercise_manifest);
         if let Some(path) = path {
             println!("Transcription asset download path: {}", path.display());
         }
-        let alias_path = trane.transcription_download_path_alias(exercise_id);
+        let alias_path =
+            downloader.transcription_download_path_alias(exercise_id, &get_exercise_manifest);
         if let Some(alias_path) = alias_path {
             println!(
                 "Transcription asset download path alias: {}",
@@ -1275,13 +1306,13 @@ impl TraneApp {
     /// Downloads the transcription asset from the given exercise to the specified directory in the
     /// user preferences.
     pub fn download_transcription_asset(&self, exercise_id: Ustr, redownload: bool) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        self.trane
-            .as_ref()
-            .unwrap()
-            .download_transcription_asset(exercise_id, redownload)?;
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+
+        downloader.download_transcription_asset(exercise_id, redownload, &get_exercise_manifest)?;
         println!("Transcription asset for exercise {exercise_id} downloaded");
         println!();
         self.transcription_path(exercise_id)?;
@@ -1290,11 +1321,14 @@ impl TraneApp {
 
     /// Prints whether the transcription asset for the given exercise has been downloaded.
     pub fn is_transcription_asset_downloaded(&self, exercise_id: Ustr) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-
+        let Some((trane, downloader)) = self.transcription_context() else {
+            return Ok(());
+        };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let trane = self.trane.as_ref().unwrap();
-        let is_downloaded = trane.is_transcription_asset_downloaded(exercise_id);
+        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+
+        let is_downloaded =
+            downloader.is_transcription_asset_downloaded(exercise_id, &get_exercise_manifest);
         if is_downloaded {
             println!("Transcription for exercise {exercise_id} is downloaded");
             println!();
@@ -1303,5 +1337,13 @@ impl TraneApp {
             println!("Transcription for exercise {exercise_id} is not downloaded");
         }
         Ok(())
+    }
+
+    /// Returns the open library and transcription downloader used by transcription commands.
+    fn transcription_context(&self) -> Option<(&Trane, &LocalTranscriptionDownloader)> {
+        Some((
+            self.trane.as_ref()?,
+            self.transcription_downloader.as_ref()?,
+        ))
     }
 }

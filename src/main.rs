@@ -21,6 +21,8 @@ mod built_info {
 mod cli;
 mod display;
 mod helper;
+mod repository_manager;
+mod transcription_downloader;
 
 use anyhow::Result;
 use app::TraneApp;
@@ -89,20 +91,19 @@ fn main() -> Result<()> {
 
                 // Parse the arguments.
                 let cli = TraneCli::try_parse_from(args.iter());
-                if cli.is_err() {
-                    println!("{}", cli.unwrap_err());
-                    continue;
-                }
-
-                // Execute the subcommand.
-                match cli.unwrap().execute_subcommand(&mut app) {
-                    Ok(continue_execution) => {
-                        if continue_execution {
-                            continue;
+                match cli {
+                    Ok(cli) => match cli.execute_subcommand(&mut app) {
+                        Ok(continue_execution) => {
+                            if continue_execution {
+                                continue;
+                            }
+                            break;
                         }
-                        break;
+                        Err(err) => println!("Error: {err:#}"),
+                    },
+                    Err(err) => {
+                        println!("{err}");
                     }
-                    Err(err) => println!("Error: {err:#}"),
                 }
             }
             Err(ReadlineError::Interrupted) => {
