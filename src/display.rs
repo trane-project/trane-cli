@@ -164,9 +164,7 @@ impl DisplayAnswer for ExerciseAsset {
                 }
             }
             ExerciseAsset::SoundSliceAsset { .. } | ExerciseAsset::LiteracyAsset { .. } => Ok(()),
-            ExerciseAsset::InlineFlashcardAsset {
-                back_content, ..
-            } => {
+            ExerciseAsset::InlineFlashcardAsset { back_content, .. } => {
                 if let Some(back_content) = back_content {
                     println!("Answer:");
                     println!();

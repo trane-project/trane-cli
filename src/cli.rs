@@ -460,7 +460,6 @@ pub(crate) enum Subcommands {
         score: u8,
     },
 
-
     #[clap(about = "Show the most recent scores for the given exercise")]
     Scores {
         #[clap(help = "The ID of the exercise")]
@@ -759,7 +758,6 @@ impl TraneCli {
                     Ok(true)
                 }
             },
-
 
             Subcommands::Score { score } => {
                 app.record_score(score)?;

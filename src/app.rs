@@ -572,7 +572,9 @@ impl TraneApp {
                     Some(manifest) => match filter {
                         UnitFilter::CourseFilter { .. } => filter.passes_course_filter(course_id),
                         UnitFilter::LessonFilter { .. } => false,
-                        UnitFilter::MetadataFilter { filter } => filter.apply_to_course(manifest.as_ref()),
+                        UnitFilter::MetadataFilter { filter } => {
+                            filter.apply_to_course(manifest.as_ref())
+                        }
                         UnitFilter::Dependents { unit_ids }
                         | UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
                         UnitFilter::ReviewListFilter => {
@@ -638,7 +640,8 @@ impl TraneApp {
                                 return true;
                             }
                             let course_manifest = course_manifest.unwrap();
-                            filter.apply_to_lesson(course_manifest.as_ref(), lesson_manifest.as_ref())
+                            filter
+                                .apply_to_lesson(course_manifest.as_ref(), lesson_manifest.as_ref())
                         }
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
@@ -1256,8 +1259,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest =
-            |exercise_id| trane.get_exercise_manifest(exercise_id).map(|m| m.as_ref().clone());
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         let path = downloader.transcription_download_path(exercise_id, &get_exercise_manifest);
         if let Some(path) = path {
@@ -1281,8 +1287,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest =
-            |exercise_id| trane.get_exercise_manifest(exercise_id).map(|m| m.as_ref().clone());
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         downloader.download_transcription_asset(exercise_id, redownload, &get_exercise_manifest)?;
         println!("Transcription asset for exercise {exercise_id} downloaded");
@@ -1297,8 +1306,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest =
-            |exercise_id| trane.get_exercise_manifest(exercise_id).map(|m| m.as_ref().clone());
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         let is_downloaded =
             downloader.is_transcription_asset_downloaded(exercise_id, &get_exercise_manifest);
