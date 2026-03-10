@@ -115,6 +115,11 @@ impl DisplayExercise for ExerciseAsset {
                 println!();
                 Ok(())
             }
+            ExerciseAsset::InlineFlashcardAsset { front_content, .. } => {
+                print_inline(front_content);
+                println!();
+                Ok(())
+            }
         }
     }
 }
@@ -159,6 +164,20 @@ impl DisplayAnswer for ExerciseAsset {
                 }
             }
             ExerciseAsset::SoundSliceAsset { .. } | ExerciseAsset::LiteracyAsset { .. } => Ok(()),
+            ExerciseAsset::InlineFlashcardAsset {
+                back_content, ..
+            } => {
+                if let Some(back_content) = back_content {
+                    println!("Answer:");
+                    println!();
+                    print_inline(back_content);
+                    println!();
+                    Ok(())
+                } else {
+                    println!("No answer available for this exercise.");
+                    Ok(())
+                }
+            }
         }
     }
 }

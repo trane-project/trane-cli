@@ -460,11 +460,6 @@ pub(crate) enum Subcommands {
         score: u8,
     },
 
-    #[clap(about = "Search for courses, lessons, and exercises")]
-    Search {
-        #[clap(help = "The search query")]
-        terms: Vec<String>,
-    },
 
     #[clap(about = "Show the most recent scores for the given exercise")]
     Scores {
@@ -765,10 +760,6 @@ impl TraneCli {
                 }
             },
 
-            Subcommands::Search { terms } => {
-                app.search(&terms)?;
-                Ok(true)
-            }
 
             Subcommands::Score { score } => {
                 app.record_score(score)?;
