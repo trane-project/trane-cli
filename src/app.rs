@@ -572,7 +572,9 @@ impl TraneApp {
                     Some(manifest) => match filter {
                         UnitFilter::CourseFilter { .. } => filter.passes_course_filter(course_id),
                         UnitFilter::LessonFilter { .. } => false,
-                        UnitFilter::MetadataFilter { filter } => filter.apply_to_course(&manifest),
+                        UnitFilter::MetadataFilter { filter } => {
+                            filter.apply_to_course(manifest.as_ref())
+                        }
                         UnitFilter::Dependents { unit_ids }
                         | UnitFilter::Dependencies { unit_ids, .. } => unit_ids.contains(course_id),
                         UnitFilter::ReviewListFilter => {
@@ -638,7 +640,8 @@ impl TraneApp {
                                 return true;
                             }
                             let course_manifest = course_manifest.unwrap();
-                            filter.apply_to_lesson(&course_manifest, &lesson_manifest)
+                            filter
+                                .apply_to_lesson(course_manifest.as_ref(), lesson_manifest.as_ref())
                         }
                         UnitFilter::ReviewListFilter => {
                             if let Ok(review_units) =
@@ -751,7 +754,7 @@ impl TraneApp {
             .unwrap()
             .get_filter(filter_id)
             .ok_or_else(|| anyhow!("no filter with ID {filter_id}"))?;
-        self.filter = Some(saved_filter.filter);
+        self.filter = Some(saved_filter.filter.clone());
         self.study_session = None;
         self.reset_batch();
         Ok(())
@@ -810,7 +813,7 @@ impl TraneApp {
             .unwrap()
             .get_course_manifest(course_id)
             .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
-        match manifest.course_instructions {
+        match &manifest.course_instructions {
             None => {
                 println!("Course has no instructions");
                 Ok(())
@@ -830,7 +833,7 @@ impl TraneApp {
             .unwrap()
             .get_lesson_manifest(lesson_id)
             .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
-        match manifest.lesson_instructions {
+        match &manifest.lesson_instructions {
             None => {
                 println!("Lesson has no instructions");
                 Ok(())
@@ -850,7 +853,7 @@ impl TraneApp {
             .unwrap()
             .get_course_manifest(course_id)
             .ok_or_else(|| anyhow!("no manifest for course with ID {course_id}"))?;
-        match manifest.course_material {
+        match &manifest.course_material {
             None => {
                 println!("Course has no material");
                 Ok(())
@@ -870,7 +873,7 @@ impl TraneApp {
             .unwrap()
             .get_lesson_manifest(lesson_id)
             .ok_or_else(|| anyhow!("no manifest for lesson with ID {lesson_id}"))?;
-        match manifest.lesson_material {
+        match &manifest.lesson_material {
             None => {
                 println!("Lesson has no material");
                 Ok(())
@@ -912,7 +915,8 @@ impl TraneApp {
             .unwrap()
             .get_exercise_manifest(exercise_id)
             .ok_or_else(|| anyhow!("no manifest for exercise with ID {exercise_id}"))?
-            .exercise_type;
+            .exercise_type
+            .clone();
 
         // Retrieve the scores and rewards and compute the aggregate score.
         let previous_trials = self
@@ -1169,37 +1173,6 @@ impl TraneApp {
         Ok(())
     }
 
-    /// Searches for units which match the given query.
-    pub fn search(&self, terms: &[String]) -> Result<()> {
-        ensure!(self.trane.is_some(), "no Trane instance is open");
-        ensure!(!terms.is_empty(), "no search terms given");
-
-        let query = terms
-            .iter()
-            .map(|s| {
-                let mut quoted = "\"".to_string();
-                quoted.push_str(s);
-                quoted.push('"');
-                quoted
-            })
-            .collect::<Vec<_>>()
-            .join(" ");
-        let results = self.trane.as_ref().unwrap().search(&query)?;
-
-        if results.is_empty() {
-            println!("No results found");
-            return Ok(());
-        }
-
-        println!("Search results:");
-        println!("{:<10} {:<50}", "Unit Type", "Unit ID");
-        for unit_id in results {
-            let unit_type = self.get_unit_type(unit_id)?;
-            println!("{unit_type:<10} {unit_id:<50}");
-        }
-        Ok(())
-    }
-
     /// Resets the scheduler options to their default values.
     pub fn reset_scheduler_options(&mut self) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
@@ -1286,7 +1259,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         let path = downloader.transcription_download_path(exercise_id, &get_exercise_manifest);
         if let Some(path) = path {
@@ -1310,7 +1287,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         downloader.download_transcription_asset(exercise_id, redownload, &get_exercise_manifest)?;
         println!("Transcription asset for exercise {exercise_id} downloaded");
@@ -1325,7 +1306,11 @@ impl TraneApp {
             return Ok(());
         };
         let exercise_id = self.exercise_id_or_current(exercise_id)?;
-        let get_exercise_manifest = |exercise_id| trane.get_exercise_manifest(exercise_id);
+        let get_exercise_manifest = |exercise_id| {
+            trane
+                .get_exercise_manifest(exercise_id)
+                .map(|m| m.as_ref().clone())
+        };
 
         let is_downloaded =
             downloader.is_transcription_asset_downloaded(exercise_id, &get_exercise_manifest);

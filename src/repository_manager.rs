@@ -273,8 +273,8 @@ mod test {
 
     use super::*;
 
-    const REPO_URL: &str = "https://github.com/trane-project/trane-leetcode.git";
-    const REPO_ID: &str = "trane-leetcode";
+    const REPO_URL: &str = "https://github.com/trane-project/trane-music.git";
+    const REPO_ID: &str = "trane-music";
 
     fn setup_directories(library_root: &Path) -> Result<()> {
         let metadata_dir = library_root
@@ -343,7 +343,7 @@ mod test {
         setup_directories(library_root.path())?;
         let mut manager = LocalRepositoryManager::new(library_root.path())?;
         assert!(manager
-            .add_repo("git@github.com:trane-project/trane-leetcode.git", None)
+            .add_repo("git@github.com:trane-project/trane-music.git", None)
             .is_err());
         Ok(())
     }
