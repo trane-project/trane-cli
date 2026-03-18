@@ -88,7 +88,7 @@ pub(crate) enum DebugSubcommands {
     TrimScores {
         #[clap(help = "The number of trials to keep for each exercise")]
         #[clap(default_value = "20")]
-        num_trials: usize,
+        num_trials: u32,
     },
 
     #[clap(about = "Prints information about the given unit")]
@@ -468,11 +468,11 @@ pub(crate) enum Subcommands {
 
         #[clap(help = "The number of scores to show")]
         #[clap(long, short, default_value = "20")]
-        num_scores: usize,
+        num_scores: u32,
 
         #[clap(help = "The number of rewards to show")]
         #[clap(long, short, default_value = "5")]
-        num_rewards: usize,
+        num_rewards: u32,
     },
 
     #[clap(about = "Subcommands for manipulating the exercise scheduler")]
