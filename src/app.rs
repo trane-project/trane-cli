@@ -883,12 +883,7 @@ impl TraneApp {
     }
 
     /// Shows the most recent scores for the given exercise.
-    pub fn show_scores(
-        &self,
-        exercise_id: Ustr,
-        num_scores: usize,
-        num_rewards: usize,
-    ) -> Result<()> {
+    pub fn show_scores(&self, exercise_id: Ustr, num_scores: u32, num_rewards: u32) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
 
         // Retrieve and validate information about the exercise.
@@ -1024,7 +1019,7 @@ impl TraneApp {
 
     /// Trims the scores for each exercise by removing all the scores except for the `num_scores`
     /// most recent scores.
-    pub fn trim_scores(&mut self, num_scores: usize) -> Result<()> {
+    pub fn trim_scores(&mut self, num_scores: u32) -> Result<()> {
         ensure!(self.trane.is_some(), "no Trane instance is open");
         self.trane.as_mut().unwrap().trim_scores(num_scores)?;
         println!("Trimmed scores for all exercises");
