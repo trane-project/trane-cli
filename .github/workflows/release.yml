@@ -59,7 +59,7 @@ jobs:
           override: true
 
       - name: Install cross
-        run:  cargo install --force cross
+        run:  cargo install cross --force --git https://github.com/cross-rs/cross
 
       - name: Build release binary
         run: ${{ matrix.cargo_cmd }} build --release --locked --target ${{ matrix.target }}
