@@ -59,7 +59,7 @@ jobs:
           override: true
 
       - name: Install cross
-        run:  cargo install --version 0.1.16 cross
+        run:  cargo install --force cross
 
       - name: Build release binary
         run: ${{ matrix.cargo_cmd }} build --release --locked --target ${{ matrix.target }}
