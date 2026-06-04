@@ -1801,12 +1801,13 @@ checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "trane"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04d70ed1d2e4be11ddc05de4970fbb3ba2b8ef3101460b0f1352de40733bcac8"
+checksum = "92bb377a63419f9bce7b378d521a4bee88d97a7437a2ed996a78ca211a0f089e"
 dependencies = [
  "anyhow",
  "chrono",
+ "clap",
  "derive_builder",
  "indoc",
  "parking_lot",
@@ -1818,6 +1819,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "tempfile",
  "thiserror",
  "ustr",
  "walkdir",
@@ -1825,7 +1827,7 @@ dependencies = [
 
 [[package]]
 name = "trane-cli"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "anyhow",
  "built",
