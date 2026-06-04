@@ -73,6 +73,9 @@ pub(crate) enum BlacklistSubcommands {
 /// Contains subcommands used for debugging.
 #[derive(Clone, Debug, Subcommand)]
 pub(crate) enum DebugSubcommands {
+    #[clap(about = "Prints the IDs of all the exercises in the current batch")]
+    Batch,
+
     #[clap(about = "Exports the dependent graph as a DOT file to the given path")]
     ExportGraph {
         #[clap(help = "The path to the DOT file")]
@@ -549,6 +552,10 @@ impl TraneCli {
             }
 
             Subcommands::Debug(subcommand) => match subcommand {
+                DebugSubcommands::Batch => {
+                    app.show_batch()?;
+                    Ok(true)
+                }
                 DebugSubcommands::ExportGraph { path, courses_only } => {
                     app.export_graph(Path::new(&path), courses_only)?;
                     println!("Exported graph to {path}");

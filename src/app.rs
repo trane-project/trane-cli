@@ -16,6 +16,7 @@ use trane::{
     exercise_scorer::{ExerciseScorer, PowerLawScorer},
     filter_manager::FilterManager,
     graph::UnitGraph,
+    practice_deltas::PracticeDeltas,
     practice_rewards::PracticeRewards,
     practice_stats::PracticeStats,
     preferences_manager::PreferencesManager,
@@ -267,6 +268,17 @@ impl TraneApp {
         } else {
             Ok(exercise_id)
         }
+    }
+
+    /// Prints the current batch of exercises to the terminal.
+    pub fn show_batch(&self) -> Result<()> {
+        ensure!(self.trane.is_some(), "no Trane instance is open");
+
+        println!("Batch size: {}", self.batch.len());
+        for exercise in &self.batch {
+            println!("Exercise ID: {}", exercise.id);
+        }
+        Ok(())
     }
 
     /// Exports the dependent graph as a DOT file to the given path.
@@ -935,9 +947,19 @@ impl TraneApp {
         // Compute the score, reward, and decide if it needs to be applied.
         let scorer = PowerLawScorer {};
         let reward_scorer = WeightedRewardScorer {};
-        let score = scorer.score(exercise_type, &previous_trials)?;
+        let deltas = self
+            .trane
+            .as_ref()
+            .unwrap()
+            .get_deltas(exercise_id, num_scores)?;
+        let score = scorer.score(
+            exercise_type,
+            &previous_trials,
+            &deltas,
+            Utc::now().timestamp(),
+        )?;
         let mut reward = reward_scorer.score_rewards(&course_rewards, &lesson_rewards)?;
-        let mut total_score = score;
+        let mut total_score = score.value;
         let apply_reward = reward_scorer.apply_reward(reward, &previous_trials);
         if apply_reward {
             total_score += reward;
@@ -950,7 +972,7 @@ impl TraneApp {
         println!();
         println!("Note: Rewards are only applied to exercises with previous scores");
         println!();
-        println!("Score: {score:.2}");
+        println!("Score: {:.2}", score.value);
         println!("Reward: {reward:.2}");
         println!("Final score: {total_score:.2}");
         println!();
